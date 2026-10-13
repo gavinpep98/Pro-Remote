@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.5 — 2026-10-13
+## 1.2 — 2026-10-13
 - **Personal PINs and access levels.** Each person signs in with their own PIN and has a level: Viewer (watch only), Slides only (slides and Clear), Operator (runs the service) or Admin (everything, including Looks editing, screens on/off, capture, the connection and people). The remote hides what a level can't use, and the helper refuses it.
 - A remote not used for 3 days asks for the PIN again.
 - Admins manage people in Settings → Access: add, change level, show PIN, new PIN, sign out, remove. The Pro Remote window has the same commands (`users`, `add`, `pin`, `level`, `signout`, `remove`).

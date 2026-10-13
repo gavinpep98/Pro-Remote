@@ -18,7 +18,7 @@ const path = require('path');
 const os = require('os');
 
 // The demo keeps its own settings file so it never touches your real setup
-const APP_VERSION = '1.1.5';   // keep in step with PAGE_VERSION in public/index.html
+const APP_VERSION = '1.2';   // keep in step with PAGE_VERSION in public/index.html
 // Where settings and saved reports live: next to this file, or (for the Mac app) in the user's
 // Application Support folder, passed in as PRO_REMOTE_DATA
 const DATA_DIR = process.env.PRO_REMOTE_DATA || __dirname;
@@ -51,7 +51,7 @@ function saveConfig() {
 }
 
 if (!Array.isArray(config.users)) config.users = [];
-// Before 1.1.5 there was one shared PIN; it becomes a person called "Admin" with that PIN
+// Before 1.2 there was one shared PIN; it becomes a person called "Admin" with that PIN
 if (config.pin && !config.users.length) {
   config.users.push({ name: 'Admin', pin: String(config.pin), level: 'admin' });
   config.pinMoved = true;

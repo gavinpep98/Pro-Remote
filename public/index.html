@@ -769,7 +769,7 @@
       <div class="hk-list" id="hkList"></div>
       <button id="hkReset" style="margin-top:8px">Reset hotkeys</button>
       </details>
-    <p class="disclaimer"><b>Pro Remote 1.1.5</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
+    <p class="disclaimer"><b>Pro Remote 1.2</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
     <div class="actions">
       <button id="settingsCancel">Cancel</button>
       <button class="primary" id="settingsSave">Save</button>
@@ -861,7 +861,7 @@
     if (/trigger|\/clear|\/(next|previous)$|\/operation|\/(start|stop|reset)$|\/stage\/screen\/[^/]+\/layout\/[^/?]+|\/transport\/[^/]+\/(play|pause|skip_forward|skip_backward|go_to_end)/.test(t)) return 'operator';
     return 'viewer';
   }
-  const PAGE_VERSION = '1.1.5';   // must match APP_VERSION in server.js
+  const PAGE_VERSION = '1.2';   // must match APP_VERSION in server.js
   let live = {};               // latest state from server
   let pres = null;             // active presentation detail
   let presUuid = null;

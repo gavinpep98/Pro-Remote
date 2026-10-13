@@ -1,4 +1,4 @@
-# Pro Remote 1.1.5 — control ProPresenter from another computer
+# Pro Remote 1.2 — control ProPresenter from another computer
 
 ![Pro Remote showing a playlist in Continuous view](docs/screenshot.png)
 
