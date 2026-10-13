@@ -328,6 +328,54 @@
   .seg button.sel { background: var(--panel-2); color: var(--text); font-weight: 600; }
   .disclaimer { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.45; color: var(--muted); }
   .set-sec { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+  /* a Settings section that folds away (Hotkeys) */
+  .set-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 10px; }
+  .set-fold > summary::-webkit-details-marker { display: none; }
+  .set-fold > summary::before { content: '▸'; color: var(--muted); font-size: 12px; width: 10px; transition: transform .15s; }
+  .set-fold[open] > summary::before { transform: rotate(90deg); }
+  .set-fold[open] > summary .muted { display: none; }
+  .set-fold > summary .muted { margin-left: auto; text-align: right; }
+  .sub-fold { margin-top: 12px; }
+  /* Access: who's signed in, and (for Admins) the people who can use the remote */
+  .me-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 13.5px; }
+  .me-line .lvl { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+  .me-line button { margin-left: auto; padding: 5px 11px; font-size: 12.5px; }
+  .people { display: grid; gap: 6px; margin-top: 10px; }
+  .person { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "nm lvl" "pin acts"; gap: 6px 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); }
+  .person .nm { grid-area: nm; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .person .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px; padding-left: 16px; white-space: normal; }
+  .on-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); opacity: .6; }
+  .on-dot.on { background: #34c759; box-shadow: 0 0 0 3px rgba(52,199,89,.22); opacity: 1; }
+  .person .acts button.is-in { border-color: var(--accent); color: var(--accent); }
+  .person .acts button:disabled { opacity: .4; cursor: default; }
+  .person select { grid-area: lvl; width: 132px; padding: 5px 8px; font-size: 13px; border-radius: 7px; }
+  .person .pinv { grid-area: pin; justify-self: start; min-width: 88px; font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; font-size: 13px; background: none; border: 1px dashed var(--line); border-radius: 7px; padding: 4px 9px; color: var(--text); text-align: left; }
+  .person .acts { grid-area: acts; display: flex; gap: 4px; }
+  .person .acts button { padding: 4px 9px; font-size: 12px; white-space: nowrap; }
+  .person-add { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 6px 8px; margin-top: 8px; }
+  .person-add input, .person-add select { padding: 7px 9px; font-size: 13px; margin: 0; }
+  .modal .person-add button { padding: 7px 12px; }
+  #connSec input:disabled { opacity: .6; }
+  /* Sign-in screen: covers the app until you've signed in */
+  .modal.signin { background: var(--bg); z-index: 70; }
+  .signin .card { max-width: 340px; text-align: center; padding: 30px 28px 24px; }
+  .signin-icon { width: 72px; height: 72px; display: block; margin: 0 auto 8px; }
+  .signin h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; text-transform: none; color: var(--text); }
+  .signin-why { margin: 6px 0 18px; color: var(--muted); font-size: 14px; text-wrap: balance; }
+  .signin #pinInput { text-align: center; font-size: 22px; letter-spacing: .35em; padding: 12px; font-variant-numeric: tabular-nums; }
+  .signin #pinInput::placeholder { letter-spacing: .05em; font-size: 15px; }
+  .signin #pinSubmit { width: 100%; padding: 11px; font-size: 15px; margin-top: 6px; }
+  .signin-help { margin: 16px 0 0; line-height: 1.45; text-wrap: balance; }
+  #pinErr { color: var(--live-text); min-height: 1.3em; margin-top: 8px; }
+  /* What each level sees (the helper program also refuses anything above a person's level) */
+  body[data-level="viewer"] .clear-rail { display: none !important; }
+  body[data-level="viewer"] #view-tools, body[data-level="slides"] #view-tools,
+  body[data-level="viewer"] #binBtn, body[data-level="slides"] #binBtn,
+  body[data-level="viewer"] .tp-btns, body[data-level="slides"] .tp-btns { display: none !important; }
+  body[data-level="viewer"] #lookBtn, body[data-level="slides"] #lookBtn { pointer-events: none; }
+  body:not([data-level="admin"]) .scr-tog { pointer-events: none; opacity: .75; }
+  body:not([data-level="admin"]) #lookMenu [data-edit] { display: none; }
+  body[data-level="viewer"] #slideGrid, body[data-level="viewer"] #slideGrid *, body[data-level="viewer"] .whole * { cursor: default !important; }
   .clear-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
   .modal .clear-picks label { margin: 0; display: flex; align-items: center; gap: 9px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); color: var(--text); font-size: 13px; cursor: pointer; }
   .clear-picks label svg { color: var(--muted); flex: none; }
@@ -682,28 +730,46 @@
         <button data-ap="auto" role="radio">Match computer</button>
       </div>
     </div>
-    <div class="muted small" style="margin-top:10px;font-weight:600;color:var(--text)">Connection</div>
-    <p class="muted small" style="margin:6px 0 0">Where ProPresenter is running. In ProPresenter open <b>Settings → Network</b>, turn on <b>Enable Network</b>, and use the IP and port shown there.</p>
+    <div class="set-sec" id="accessSec">
+      <strong>Access</strong>
+      <div class="me-line" id="meLine"></div>
+      <details class="set-fold sub-fold" id="peopleBox" data-fold="people" hidden>
+        <summary><strong>People</strong><span class="muted small" id="peopleSum"></span></summary>
+        <p class="muted small" style="margin:10px 0 0" id="peopleNote"></p>
+        <div class="people" id="peopleList"></div>
+        <div class="person-add">
+          <input id="addName" placeholder="Name" autocomplete="off" maxlength="30" aria-label="Name">
+          <select id="addLevel" aria-label="Level">
+            <option value="viewer">Viewer</option><option value="slides">Slides only</option>
+            <option value="operator" selected>Operator</option><option value="admin">Admin</option>
+          </select>
+          <input id="addPin" placeholder="PIN (optional)" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="PIN">
+          <button id="addPerson">Add</button>
+        </div>
+        <p class="muted small" style="margin:8px 0 0"><b>Viewer</b> watches only · <b>Slides only</b>: slides and Clear · <b>Operator</b> runs the service · <b>Admin</b> also Looks, screens, capture, settings and people. Leave PIN blank to have one made up.</p>
+      </details>
+    </div>
+    <details class="set-sec set-fold" id="connSec" data-fold="conn">
+    <summary><strong>Connection</strong><span class="muted small" id="connSum"></span></summary>
+    <p class="muted small" style="margin:6px 0 0" id="connNote">Where ProPresenter is running. In ProPresenter open <b>Settings → Network</b>, turn on <b>Enable Network</b>, and use the IP and port shown there.</p>
     <label for="proHost">ProPresenter IP address</label>
     <input id="proHost" placeholder="127.0.0.1" inputmode="decimal" autocomplete="off">
     <label for="proPort">Port</label>
     <input id="proPort" placeholder="1025" inputmode="numeric">
-    <label for="newPin">Remote PIN</label>
-    <input id="newPin" placeholder="e.g. 4321" inputmode="numeric" autocomplete="off">
-    <p class="muted small" style="margin:4px 0 0">The PIN is also shown in the Pro Remote window on the computer running the remote. Type <b>pin 1234</b> there to change it, or <b>pin off</b> to remove it.</p>
-    <div class="set-sec">
-      <strong>Clear buttons</strong>
+    </details>
+    <details class="set-sec set-fold" data-fold="clear">
+      <summary><strong>Clear buttons</strong><span class="muted small" id="clearSum"></span></summary>
       <p class="muted small" style="margin:6px 0 0">Choose which clear buttons show next to the live preview. Changes show right away and are saved on this computer only.</p>
       <div class="clear-picks" id="clearPicks"></div>
-    </div>
-    <div class="set-sec">
-      <strong>Hotkeys</strong>
+    </details>
+      <details class="set-sec set-fold" id="hkFold" data-fold="hk">
+      <summary><strong>Hotkeys</strong><span class="muted small">Click to show or change them</span></summary>
       <p class="muted small" style="margin:6px 0 0">Click a key to change it, then press the new key (Delete removes it). Saved on this computer only. Press <b>?</b> anytime to see them.</p>
       <label class="rep-check" style="margin-top:10px"><input type="checkbox" id="hkGroups"> Other letter keys (ones not used above) jump to the next section starting with that letter</label>
       <div class="hk-list" id="hkList"></div>
       <button id="hkReset" style="margin-top:8px">Reset hotkeys</button>
-    </div>
-    <p class="disclaimer"><b>Pro Remote 1.1.1</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
+      </details>
+    <p class="disclaimer"><b>Pro Remote 1.1.5</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
     <div class="actions">
       <button id="settingsCancel">Cancel</button>
       <button class="primary" id="settingsSave">Save</button>
@@ -751,13 +817,17 @@
 </div>
 
 <!-- PIN -->
-<div class="modal" id="pinModal">
-  <div class="card">
-    <strong>Enter PIN</strong>
-    <p class="muted small" style="margin:6px 0 0">This remote is protected. Ask your tech lead for the PIN. Forgot it? It's shown in the Pro Remote window on the computer running the remote.</p>
-    <label for="pinInput">PIN</label>
-    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off">
-    <div class="actions"><button class="primary" id="pinSubmit">Unlock</button></div>
+<div class="modal signin" id="pinModal">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="signinTitle">
+    <svg class="signin-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="signinBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa45c"/><stop offset="1" stop-color="#ec5f16"/></linearGradient></defs><rect x="100" y="100" width="824" height="824" rx="185" fill="url(#signinBg)"/><rect x="290" y="226" width="460" height="290" rx="34" fill="#1a1205" opacity=".22"/>
+<rect x="232" y="288" width="460" height="290" rx="34" fill="#1b1d23"/>
+<rect x="282" y="364" width="280" height="30" rx="15" fill="#fff"/><rect x="282" y="424" width="200" height="30" rx="15" fill="#fff" opacity=".55"/><circle cx="632" cy="662" r="132" fill="#fff"/><path d="M598 602 L678 662 L598 722 Z" fill="#ec5f16" stroke="#ec5f16" stroke-width="22" stroke-linejoin="round"/><path d="M777.8 548.1 A185 185 0 0 1 777.8 775.9" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" opacity="1"/><path d="M825.1 511.2 A245 245 0 0 1 825.1 812.8" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" opacity="0.55"/></svg>
+    <h2 id="signinTitle">Pro Remote</h2>
+    <p class="signin-why" id="pinWhy">Type your PIN to sign in.</p>
+    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" aria-label="Your PIN" placeholder="PIN">
+    <div class="small" id="pinErr"></div>
+    <button class="primary" id="pinSubmit">Sign in</button>
+    <p class="muted small signin-help">Forgot your PIN or don't have one? Ask your tech lead. Everyone's PIN is listed in the Pro Remote window on the computer running the remote (type <b>users</b> there).</p>
   </div>
 </div>
 
@@ -769,9 +839,29 @@
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  let pin = '';
-  try { pin = localStorage.getItem('proRemotePin') || ''; } catch (_) {}
-  const PAGE_VERSION = '1.1.1';   // must match APP_VERSION in server.js
+  // Signing in: each person has their own PIN; signing in gives this computer a token (kept in this browser)
+  let token = '';
+  try { token = localStorage.getItem('proRemoteToken') || ''; localStorage.removeItem('proRemotePin'); } catch (_) {}
+  const LEVELS = ['viewer', 'slides', 'operator', 'admin'];
+  const LEVEL_NAMES = { viewer: 'Viewer', slides: 'Slides only', operator: 'Operator', admin: 'Admin' };
+  let me = { ok: true, open: true, level: 'admin', name: '' };   // who's using this remote (from /auth)
+  const can = level => LEVELS.indexOf(me.level) >= LEVELS.indexOf(level);
+  // The level a ProPresenter request needs (the same rules as the helper program, which has the final say)
+  function needLevel(method, t) {
+    t = t.split('?')[0];
+    if (method !== 'GET') {
+      if (/^\/v1\/looks?(\/|$)/.test(t)) return 'admin';
+      if (/^\/v1\/status\/(audience|stage)_screens/.test(t)) return 'admin';
+      if (/^\/v1\/capture\//.test(t)) return 'admin';
+      if (/^\/v1\/(stage\/message|stage\/screen\/|transport\/|timers?\/)/.test(t)) return 'operator';
+      return 'admin';
+    }
+    if (/^\/v1\/capture\/(start|stop)/.test(t)) return 'admin';
+    if (/^\/v1\/trigger\/(next|previous)$|^\/v1\/trigger\/cue\/|^\/v1\/trigger\/playlist\/|^\/v1\/playlist\/.+\/trigger$|^\/v1\/presentation\/.+\/trigger(\/|$)|^\/v1\/clear\/(layer|group)\//.test(t)) return 'slides';
+    if (/trigger|\/clear|\/(next|previous)$|\/operation|\/(start|stop|reset)$|\/stage\/screen\/[^/]+\/layout\/[^/?]+|\/transport\/[^/]+\/(play|pause|skip_forward|skip_backward|go_to_end)/.test(t)) return 'operator';
+    return 'viewer';
+  }
+  const PAGE_VERSION = '1.1.5';   // must match APP_VERSION in server.js
   let live = {};               // latest state from server
   let pres = null;             // active presentation detail
   let presUuid = null;
@@ -790,12 +880,27 @@
     t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
     clearTimeout(toast._t); toast._t = setTimeout(() => t.className = '', 1800);
   }
-  function headers(extra = {}) { return pin ? { 'X-Remote-Pin': pin, ...extra } : extra; }
-  const pinQS = (sep = '?') => pin ? `${sep}pin=${encodeURIComponent(pin)}` : '';
+  function headers(extra = {}) { return token ? { 'X-Remote-Token': token, ...extra } : extra; }
+  const pinQS = (sep = '?') => token ? `${sep}t=${encodeURIComponent(token)}` : '';
+  const quietError = msg => { const e = new Error(msg); e.quiet = true; return e; };
+  function notAllowed() {
+    const now = Date.now();
+    if (now - (notAllowed.t || 0) > 1500) toast(`${LEVEL_NAMES[me.level]} access can't do that`, true);
+    notAllowed.t = now;
+  }
 
   async function api(path, opts = {}) {
+    const need = needLevel((opts.method || 'GET').toUpperCase(), path);
+    if (!can(need)) { notAllowed(); throw quietError('Not allowed'); }
     const res = await fetch('/pp' + path, { ...opts, headers: headers(opts.headers) });
-    if (res.status === 401) { showPin(); throw new Error('PIN required'); }
+    if (res.status === 401) {
+      let j = {}; try { j = await res.json(); } catch (_) {}
+      showPin(j.replaced ? 'replaced' : j.expired); throw quietError('PIN required');
+    }
+    if (res.status === 403) {
+      let j = {}; try { j = await res.clone().json(); } catch (_) {}
+      if (j.level) { refreshMe(); notAllowed(); throw quietError('Not allowed'); }
+    }
     if (!res.ok) {
       let detail = '';
       try { detail = (await res.text()).replace(/\s+/g, ' ').trim().slice(0, 120); } catch (_) {}
@@ -816,7 +921,7 @@
   }
   async function cmd(paths, okMsg) {
     try { await apiFirst(Array.isArray(paths) ? paths : [paths]); if (okMsg) toast(okMsg); }
-    catch (e) { if (e.message !== 'PIN required') toast(`Didn't work (${e.message})`, true); }
+    catch (e) { if (!e.quiet) toast(`Didn't work (${e.message})`, true); }
   }
   // In-app question box: askText() -> typed text or null; askYes() -> true / false
   function ask({ title, message = '', input = false, placeholder = '', ok = 'OK', danger = false }) {
@@ -914,7 +1019,7 @@
     } catch (_) {}
     tries.unshift('/v1/playlist/active/presentation/next/trigger');
     for (const path of tries) {
-      try { await api(path); } catch (e) { if (e.message === 'PIN required') return true; continue; }
+      try { await api(path); } catch (e) { if (e.quiet) return true; continue; }
       await sleep(350);
       const now = await liveUuidNow();
       if (now && now !== before) { toast(nextName ? `Next item: ${nextName}` : 'Next playlist item'); return true; }
@@ -1094,7 +1199,7 @@
   }
   $('#hkList').addEventListener('click', e => {
     const b = e.target.closest('[data-hk]'); if (!b) return;
-    if (hkListening) return;
+    if (hkListening || !can('operator')) return;   // Viewers and Slides only can use the keys but not change them
     hkListening = b.dataset.hk; b.classList.add('listening'); b.textContent = 'Press a key…';
     const onKey = ev => {
       ev.preventDefault(); ev.stopPropagation();
@@ -1111,15 +1216,16 @@
     };
     document.addEventListener('keydown', onKey, true);
   });
-  $('#hkGroups').onchange = e => { hkGroups = e.target.checked; hkSave(); };
-  $('#hkReset').onclick = () => { hk = { ...HK_DEFAULTS }; hkGroups = false; hkSave(); drawHotkeys(); toast('Hotkeys reset'); };
+  $('#hkGroups').onchange = e => { if (!can('operator')) { e.target.checked = hkGroups; return; } hkGroups = e.target.checked; hkSave(); };
+  $('#hkReset').onclick = () => {
+    if (!can('operator')) return; hk = { ...HK_DEFAULTS }; hkGroups = false; hkSave(); drawHotkeys(); toast('Hotkeys reset'); };
   function showKeySheet() {
     const rows = [[['→', 'Space', 'Page Down'], 'Next slide (or put the item picked with ↓ / ↑ live)'], [['←', 'Page Up'], 'Previous slide'],
       [['↓', '↑'], 'Pick the next / previous playlist item (doesn\'t change the screen)'],
       ...HK_ACTIONS.filter(([id]) => hk[id]).map(([id, name]) => [[hk[id]], name])];
     if (hkGroups) rows.push([['Other letters'], 'Jump to the next section starting with that letter']);
     $('#hkSheet').innerHTML = rows.map(([k, n]) => `<span>${k.map(x => `<kbd>${esc(x)}</kbd>`).join(' ')}</span><span>${esc(n)}</span>`).join('');
-    $('#hkSheetNote').textContent = 'Change these in ⚙︎ Settings → Hotkeys. On Mac laptops, F-keys may need the fn key.';
+    $('#hkSheetNote').textContent = (can('operator') ? 'Change these in ⚙︎ Settings → Hotkeys. ' : 'An Operator or Admin can change these. ') + 'On Mac laptops, F-keys may need the fn key.';
     $('#keysModal').classList.add('show');
   }
   $('#keysClose').onclick = () => $('#keysModal').classList.remove('show');
@@ -1294,7 +1400,7 @@
     try {
       await api(`/v1/status/${kind}_screens`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(turnOn) });
       toast(`${label} screens ${turnOn ? 'on' : 'off'}`);
-    } catch (err) { if (err.message !== 'PIN required') toast(`Couldn't turn ${label.toLowerCase()} screens ${turnOn ? 'on' : 'off'} (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Couldn't turn ${label.toLowerCase()} screens ${turnOn ? 'on' : 'off'} (${err.message})`, true); }
     setTimeout(() => { delete scrPending[kind]; drawScreenToggles(live); }, 1200);
   });
   // When the live song changes (Continuous, Next at the end of a song, or someone in ProPresenter),
@@ -1594,7 +1700,7 @@
       paths.push(`/v1/presentation/${u}/${raw}/trigger`, `/v1/presentation/${u}/trigger/${raw}`);
       if (uuid === presUuid) paths.push(`/v1/presentation/active/${raw}/trigger`);
       try { await apiFirst(paths); }
-      catch (err) { if (err.message !== 'PIN required') toast(`Didn't work (${err.message})`, true); return; }
+      catch (err) { if (!err.quiet) toast(`Didn't work (${err.message})`, true); return; }
       if (raw === want || cueJumpWorks === false) return;
       await sleep(300);
       if ((await liveIndexNow(uuid)) === want) return;
@@ -1761,7 +1867,7 @@
       } else if (okMsg) toast(okMsg);
       return true;
     } catch (e) {
-      if (e.message === 'PIN required') return false;
+      if (e.quiet) return false;
       const m = /missing field `([^`]+)` at line \d+ column (\d+)/.exec(e.message);
       const bad = m && itemAtColumn(next, Number(m[2]));
       toast(bad ? `ProPresenter wanted more info about “${nameOf(bad.id)}” (${m[1]}). Please send a problem report.` : `Didn't work (${e.message})`, true);
@@ -1874,7 +1980,7 @@
       toast(`Created “${name}”`);
       const node = findNode(plTree, created.id);
       if (node) openPlaylist(node, trail); else showPlaylistFolder(plTree, []);
-    } catch (e) { if (e.message !== 'PIN required') toast(`Couldn't create playlist (${e.message})`, true); }
+    } catch (e) { if (!e.quiet) toast(`Couldn't create playlist (${e.message})`, true); }
   }
 
   // Editing playlists from the remote was removed: ProPresenter's API resets song arrangements when a
@@ -2119,7 +2225,7 @@
       // ProPresenter 21's folder list already carries every prop with its on/off state
       const [colData, flat] = await Promise.all([
         api('/v1/prop_collections').catch(() => null),
-        api('/v1/props').catch(e => { if (e.message === 'PIN required') throw e; return null; })
+        api('/v1/props').catch(e => { if (e.quiet) throw e; return null; })
       ]);
       const cols = collectionsOf(colData, 'prop_collections');
       const flatList = Array.isArray(flat) ? flat : (flat?.props || []);
@@ -2143,7 +2249,7 @@
         ? foldersHtml('props', groups.map(g => ({ ...g, name: g.name || 'Other' })), card, p => !!(p.is_active ?? p.active), 'prop-grid')
         : '<div class="prop-grid">' + groups.flatMap(g => g.list).map(card).join('') + '</div>';
     } catch (e) {
-      if (e.message === 'PIN required') return;
+      if (e.quiet) return;
       box.innerHTML = `<div class="empty">${e.status === 503 ? "ProPresenter isn't sharing props right now." : `Couldn't load props (${esc(e.message)}).`}
         <div style="margin-top:8px"><button id="propsRetry">Retry</button></div></div>`;
       $('#propsRetry').onclick = loadProps;
@@ -2175,7 +2281,7 @@
         : '<div class="muted small" style="padding:8px 10px">No Looks set up in ProPresenter.</div>')
         + `<div class="menu-sep"></div><button data-edit="1"><span class="chk">✎</span><span>Edit Looks…</span></button>`;
     } catch (e) {
-      if (e.message !== 'PIN required') menu.innerHTML = `<div class="muted small" style="padding:8px 10px">Couldn't load Looks (${esc(e.message)}).</div>`;
+      if (!e.quiet) menu.innerHTML = `<div class="muted small" style="padding:8px 10px">Couldn't load Looks (${esc(e.message)}).</div>`;
     }
   }
   function closeLookMenu() { $('#lookMenu').hidden = true; $('#lookBtn').setAttribute('aria-expanded', 'false'); }
@@ -2260,7 +2366,7 @@
       try { await api(path); }
       catch (err) { if (err.status === 404 || err.status === 405) await api(path, { method: 'PUT' }); else throw err; }
       toast(op === 'start' ? 'Capture started' : 'Capture stopped');
-    } catch (err) { if (err.message !== 'PIN required') toast(`Didn't work (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Didn't work (${err.message})`, true); }
     setTimeout(() => fillCapMenu(false), 600);
   });
   document.addEventListener('click', closeCapMenu);
@@ -2351,7 +2457,7 @@
       await api(path);
       if (op === 'play' || op === 'pause') { st.forced = op === 'play'; st.forceUntil = Date.now() + 2500; if (op === 'play') st.changedAt = Date.now(); syncTransport(); }
       else st.jumped = true;            // a jump moves the time but isn't "playing"
-    } catch (err) { if (err.message !== 'PIN required') toast(`Didn't work (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Didn't work (${err.message})`, true); }
   }
   document.querySelector('.tp-tabs').addEventListener('click', e => {
     const b = e.target.closest('button[data-layer]'); if (!b) return;
@@ -2382,7 +2488,7 @@
       try {
         await api(`/v1/transport/${layer}/time`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(to) });
         s2.jumped = true;
-      } catch (err) { if (err.message !== 'PIN required') toast(`Couldn't jump (${err.message})`, true); }
+      } catch (err) { if (!err.quiet) toast(`Couldn't jump (${err.message})`, true); }
     };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   });
@@ -2422,7 +2528,7 @@
         const d = await api(`/v1/${kind}/playlists`);
         binPls[kind] = flattenPls(Array.isArray(d) ? d : (d?.playlists || d?.[`${kind}_playlists`] || []));
       } catch (e) {
-        if (e.message === 'PIN required') return;
+        if (e.quiet) return;
         $('#binPl').innerHTML = '';
         $('#binBody').innerHTML = `<div class="empty">Couldn't load ${kind} playlists (${esc(e.message)}). <button id="binRetry" style="margin-left:6px">Retry</button></div>`;
         $('#binRetry').onclick = () => { binPls[kind] = null; loadBinPlaylists(); };
@@ -2457,7 +2563,7 @@
       binItems = all;
       renderBinItems();
     } catch (e) {
-      if (e.message !== 'PIN required') $('#binBody').innerHTML = `<div class="empty">Couldn't open this playlist (${esc(e.message)}).</div>`;
+      if (!e.quiet) $('#binBody').innerHTML = `<div class="empty">Couldn't open this playlist (${esc(e.message)}).</div>`;
     }
   }
   // ---------- Live inputs (cameras, capture cards, NDI sources set up in ProPresenter) ----------
@@ -2470,7 +2576,7 @@
       binItems = Array.isArray(d) ? d : (d?.video_inputs || d?.inputs || []);
       renderBinItems();
     } catch (e) {
-      if (e.message === 'PIN required') return;
+      if (e.quiet) return;
       $('#binBody').innerHTML = `<div class="empty">Couldn't load live inputs (${esc(e.message)}). <button id="binRetry" style="margin-left:6px">Retry</button></div>`;
       $('#binRetry').onclick = loadInputs;
     }
@@ -2539,7 +2645,7 @@
     if (inp) {
       const name = inp.getAttribute('title') || 'input';
       try { await api(`/v1/trigger/video_input/${encodeURIComponent(inp.dataset.input)}`); lastInput = inp.dataset.input; toast(`Live: ${name}`); }
-      catch (err) { if (err.message !== 'PIN required') toast(`Didn't work (${err.message})`, true); }
+      catch (err) { if (!err.quiet) toast(`Didn't work (${err.message})`, true); }
       setTimeout(renderInputs, 600);
       return;
     }
@@ -2591,7 +2697,7 @@
     $('#looksList').innerHTML = '<div class="muted small">Loading…</div>';
     looksMasks = await api('/v1/masks').then(d => Array.isArray(d) ? d : (d?.masks || [])).catch(() => []);
     try { looksAll = lookList(await api('/v1/looks')); }
-    catch (e) { if (e.message !== 'PIN required') $('#looksList').innerHTML = `<div class="muted small">Couldn't load Looks (${esc(e.message)}).</div>`; return; }
+    catch (e) { if (!e.quiet) $('#looksList').innerHTML = `<div class="muted small">Couldn't load Looks (${esc(e.message)}).</div>`; return; }
     const want = selectId || lookSel || anyId(live.look) || anyId(looksAll[0]);
     drawLookList(); if (want) selectLook(want);
   }
@@ -2609,7 +2715,7 @@
       if (lookSel !== id) return;
       lookDraft = JSON.parse(JSON.stringify(full?.look || full || {}));
       drawLookEditor();
-    } catch (e) { if (e.message !== 'PIN required') $('#looksEdit').innerHTML = `<div class="muted small">Couldn't open this Look (${esc(e.message)}).</div>`; }
+    } catch (e) { if (!e.quiet) $('#looksEdit').innerHTML = `<div class="muted small">Couldn't open this Look (${esc(e.message)}).</div>`; }
   }
   function drawLookEditor() {
     const lk = lookDraft, scr = screensOf(lk), isCur = lookSel === anyId(live.look);
@@ -2670,7 +2776,7 @@
         toast("ProPresenter didn't keep all of those changes", true);
       } else toast(`Saved “${name}”`);
       looksAll = lookList(await api('/v1/looks')); selectLook(lookSel);
-    } catch (err) { if (err.message !== 'PIN required') toast(`Couldn't save (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Couldn't save (${err.message})`, true); }
   }
   async function deleteLook() {
     const name = anyName(lookDraft);
@@ -2682,7 +2788,7 @@
       toast(`Deleted “${name}”`);
       lookSel = null; lookDraft = null; drawLookList();
       $('#looksEdit').innerHTML = '<div class="muted small">Choose a Look to edit.</div>';
-    } catch (err) { if (err.message !== 'PIN required') toast(`Couldn't delete (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Couldn't delete (${err.message})`, true); }
   }
   // Add: start as a copy of the selected Look (or the current one) under a new name
   $('#looksAdd').onclick = async () => {
@@ -2702,7 +2808,7 @@
       if (!made) return toast("ProPresenter didn't create the Look", true);
       toast(`Added “${name}”`);
       selectLook(anyId(made));
-    } catch (err) { if (err.message !== 'PIN required') toast(`Couldn't add the Look (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Couldn't add the Look (${err.message})`, true); }
   };
   $('#looksList').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) selectLook(b.dataset.id); });
   $('#looksClose').onclick = () => $('#looksModal').classList.remove('show');
@@ -2817,7 +2923,7 @@
       }
       pnlAudioItems = all; drawPnlAudio();
     } catch (e) {
-      if (e.message !== 'PIN required') $('#pnlAudio').innerHTML = `<div class="muted small">Couldn't load audio (${esc(e.message)}). <button id="pnlAudioRetry" style="padding:4px 10px; margin-left:6px">Retry</button></div>`;
+      if (!e.quiet) $('#pnlAudio').innerHTML = `<div class="muted small">Couldn't load audio (${esc(e.message)}). <button id="pnlAudioRetry" style="padding:4px 10px; margin-left:6px">Retry</button></div>`;
       const r = $('#pnlAudioRetry'); if (r) r.onclick = () => { pnlAudioPls = null; loadPnlAudio(); };
     }
   }
@@ -2873,7 +2979,7 @@
         </div>`;
       }).join('');
     } catch (e) {
-      if (e.message === 'PIN required') return;
+      if (e.quiet) return;
       box.innerHTML = `<div class="muted small">${e.status === 503 ? "ProPresenter isn't sharing stage layouts right now." : `Couldn't load stage layouts (${esc(e.message)}).`}
         <button id="stageRetry" style="padding:4px 10px; margin-left:6px">Retry</button></div>`;
       $('#stageRetry').onclick = loadStage;
@@ -2887,7 +2993,7 @@
       try { await api(path); }
       catch (err) { if (err.status === 404 || err.status === 405) await api(path, { method: 'PUT' }); else throw err; }
       toast(`Stage: ${name}`);
-    } catch (err) { if (err.message !== 'PIN required') toast(`Didn't work (${err.message})`, true); }
+    } catch (err) { if (!err.quiet) toast(`Didn't work (${err.message})`, true); }
     loadStage();
   });
   setInterval(() => { if (!document.querySelector('#stageScreens select:focus')) loadStage(); }, 15000);
@@ -3044,11 +3150,12 @@
   $('#settingsBtn').onclick = async () => {
     try {
       const res = await fetch('/config', { headers: headers() });
-      if (res.status === 401) return showPin();
+      if (res.status === 401) { const j = await res.json().catch(() => ({})); return showPin(j.replaced ? 'replaced' : j.expired); }
       const c = await res.json();
-      $('#proHost').value = c.proHost; $('#proPort').value = c.proPort; $('#newPin').value = '';
-      $('#newPin').placeholder = c.pinSet ? 'PIN is set — type a new one, or leave blank to keep' : 'e.g. 4321';
-      drawClearPicks();
+      $('#proHost').value = c.proHost; $('#proPort').value = c.proPort;
+      await refreshMe();
+      drawAccess();
+      drawClearPicks(); drawFoldSums();
       $('#settingsModal').classList.add('show');
     } catch (e) { toast('Could not load settings', true); }
   };
@@ -3069,9 +3176,23 @@
     const k = e.target.dataset.pick; if (!k) return;
     clearHidden = clearHidden.filter(x => x !== k); if (!e.target.checked) clearHidden.push(k);
     try { localStorage.setItem('clearHidden', JSON.stringify(clearHidden)); } catch (_) {}
-    applyClearPicks();
+    applyClearPicks(); drawFoldSums();
   });
   applyClearPicks(); drawClearPicks(); drawHotkeys();
+  // Settings sections fold away so Save is close by; each computer remembers which were left open
+  let folds = {};
+  try { folds = JSON.parse(localStorage.getItem('settingsFolds') || '{}'); } catch (_) {}
+  document.querySelectorAll('#settingsModal details[data-fold]').forEach(d => {
+    d.open = !!folds[d.dataset.fold];
+    d.addEventListener('toggle', () => { folds[d.dataset.fold] = d.open; try { localStorage.setItem('settingsFolds', JSON.stringify(folds)); } catch (_) {} });
+  });
+  // what each folded section is set to, shown on its closed line
+  function drawFoldSums() {
+    const all = [...document.querySelectorAll('.clear-rail [data-clear]')];
+    const shown = all.filter(b => !clearHidden.includes(b.dataset.clear)).length;
+    $('#clearSum').textContent = shown === all.length ? 'All showing' : `${shown} of ${all.length} showing`;
+    $('#connSum').textContent = `${$('#proHost').value || '127.0.0.1'} : ${$('#proPort').value || '1025'}`;
+  }
   // Appearance: applies right away, saved on this computer
   function drawAppearance() {
     const cur = window.__appearance ? window.__appearance() : 'dark';
@@ -3083,12 +3204,10 @@
   });
   drawAppearance();
   $('#settingsSave').onclick = async () => {
+    if (!can('admin')) { $('#settingsModal').classList.remove('show'); return; }   // only Admins change the connection
     const body = { proHost: $('#proHost').value.trim(), proPort: Number($('#proPort').value) };
-    const np = $('#newPin').value.trim();
-    if (np) body.pin = np;
     const res = await fetch('/config', { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
     if (!res.ok) return toast('Could not save', true);
-    if (np) { pin = np; try { localStorage.setItem('proRemotePin', pin); } catch (_) {} }
     $('#settingsModal').classList.remove('show');
     presUuid = null; plLoaded = false; libLoaded = false;
     toast('Saved — reconnecting…');
@@ -3096,27 +3215,181 @@
     setTimeout(() => { loadPlaylists(); loadMacros(); loadStage(); document.querySelector('#tabs [data-view="playlists"]').click(); }, 800);
   };
 
-  // ---------- PIN ----------
-  function showPin() { $('#pinModal').classList.add('show'); setTimeout(() => $('#pinInput').focus(), 50); }
-  $('#pinSubmit').onclick = async () => {
-    const p = $('#pinInput').value.trim();
-    const r = await fetch('/auth', { headers: { 'X-Remote-Pin': p } }).then(r => r.json());
-    if (!r.ok) return toast('Wrong PIN', true);
-    pin = p; try { localStorage.setItem('proRemotePin', pin); } catch (_) {}
-    $('#pinModal').classList.remove('show');
+  // ---------- signing in, and who can use the remote ----------
+  function setMe(a) {
+    me = { ok: !!a.ok, open: !!a.open, local: !!a.local, name: a.name || '', level: a.ok ? (a.level || 'admin') : 'viewer', idleDays: a.idleDays || 3 };
+    document.body.dataset.level = me.level;
+  }
+  async function refreshMe() {
+    const a = await fetch('/auth', { headers: headers() }).then(r => r.json()).catch(() => null);
+    if (a) setMe(a);
+    return a;
+  }
+  function showPin(expired) {
+    // already open (other requests also find you're signed out): leave what's typed alone
+    if ($('#pinModal').classList.contains('show')) { if (expired) showPin.why(expired); return; }
+    showPin.why(expired);
+    $('#pinErr').textContent = ''; $('#pinInput').value = '';
+    $('#pinModal').classList.add('show'); setTimeout(() => $('#pinInput').focus(), 50);
+  }
+  showPin.why = why => {
+    $('#pinWhy').innerHTML = why === 'replaced'
+      ? 'You were signed out because your level changed and you were signed in on more than one computer. Each person (except Admins) can be signed in on one computer at a time.'
+      : why
+        ? `You were signed out because this remote wasn't used for ${me.idleDays || 3} days. Type your PIN to sign back in.`
+        : 'Type your PIN to sign in.';
+  };
+  async function signIn(pinTyped) {
+    const res = await fetch('/signin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: pinTyped }) });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.token) return j.error || "That PIN isn't right.";
+    token = j.token; try { localStorage.setItem('proRemoteToken', token); } catch (_) {}
+    return '';
+  }
+  function afterSignIn() {
+    presUuid = null; plLoaded = false; libLoaded = false;
     connect();
+    setTimeout(() => { loadPlaylists(); loadTimers(); loadMacros(); loadStage(); showPnl(pnlSel); }, 300);
+  }
+  $('#pinSubmit').onclick = async () => {
+    const err = await signIn($('#pinInput').value.trim());
+    if (err) { $('#pinErr').textContent = err; $('#pinInput').select(); return; }
+    $('#pinModal').classList.remove('show');
+    toast(`Signed in as ${me.name || 'you'}`);
+    afterSignIn();
+    refreshMe().then(() => toast(`Signed in as ${me.name} (${LEVEL_NAMES[me.level]})`));
   };
   $('#pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pinSubmit').click(); });
 
+  // Settings → Access: who you are, and for Admins, everyone who can use the remote
+  function drawAccess() {
+    const line = $('#meLine');
+    if (me.open) line.innerHTML = `<span>Anyone on this network can use the remote, no PIN needed.</span>`;
+    else if (me.name) line.innerHTML = `<span>Signed in as <b>${esc(me.name)}</b></span><span class="lvl">${esc(LEVEL_NAMES[me.level])}</span><button id="signOutBtn">Sign out</button>`;
+    else line.innerHTML = `<span>This is the computer running the remote, so it never needs a PIN.</span><span class="lvl">Admin</span><button id="signInBtn">Sign in as someone</button>`;
+    $('#connNote').innerHTML = can('admin')
+      ? 'Where ProPresenter is running. In ProPresenter open <b>Settings → Network</b>, turn on <b>Enable Network</b>, and use the IP and port shown there.'
+      : 'Only an Admin can change where ProPresenter is.';
+    $('#proHost').disabled = $('#proPort').disabled = !can('admin');
+    $('#settingsSave').textContent = can('admin') ? 'Save' : 'Done';
+    $('#peopleBox').hidden = !can('admin');
+    $('#hkFold').hidden = !can('operator');   // changing hotkeys: Operators and Admins
+    if (can('admin')) drawPeople();
+  }
+  $('#meLine').addEventListener('click', async e => {
+    if (e.target.id === 'signOutBtn') {
+      await fetch('/signout', { method: 'POST', headers: headers() }).catch(() => {});
+      token = ''; try { localStorage.removeItem('proRemoteToken'); } catch (_) {}
+      $('#settingsModal').classList.remove('show');
+      const a = await refreshMe();
+      if (a && !a.ok) { if (es) { es.close(); es = null; } showPin(); } else { toast('Signed out'); connect(); }
+    }
+    if (e.target.id === 'signInBtn') { $('#settingsModal').classList.remove('show'); showPin(); }
+  });
+  let people = [];
+  function personStatus(u) {
+    if (u.online) return `Online now${u.online > 1 ? ` · ${u.online} remotes` : ''}`;
+    if (u.signedIn) return 'Signed in';
+    return u.lastUsed ? 'Signed out' : 'Not signed in yet';
+  }
+  // keep the list current while Settings is open (who's online changes as remotes open and close)
+  setInterval(() => {
+    if ($('#settingsModal').classList.contains('show') && !$('#peopleBox').hidden && $('#peopleBox').open && !document.activeElement?.closest?.('#peopleList, .person-add')) drawPeople();
+  }, 5000);
+  async function drawPeople() {
+    const res = await fetch('/users', { headers: headers() });
+    if (!res.ok) { $('#peopleBox').hidden = true; return; }
+    const d = await res.json();
+    people = d.users;
+    const nOn = people.filter(u => u.online).length;
+    $('#peopleSum').textContent = d.open ? 'Nobody added yet' : `${people.length} ${people.length === 1 ? 'person' : 'people'}${nOn ? ` · ${nOn} online` : ''}`;
+    $('#peopleNote').innerHTML = d.open
+      ? 'To require PINs, add yourself as an <b>Admin</b> first. After that, everyone signs in with their own PIN.'
+      : `Each person signs in with their own PIN. A remote not used for ${me.idleDays} days asks again. Click a PIN to show it.`;
+    const opts = cur => LEVELS.map(l => `<option value="${l}"${l === cur ? ' selected' : ''}>${LEVEL_NAMES[l]}</option>`).join('');
+    $('#peopleList').innerHTML = people.map((u, i) => `<div class="person" data-i="${i}">
+        <div class="nm"><i class="on-dot${u.online ? ' on' : ''}" title="${u.online ? 'Using the remote right now' : 'Not using the remote right now'}"></i>${esc(u.name)}${u.name === me.name ? ' (you)' : ''}<small>${personStatus(u)}</small></div>
+        <select data-act="level" aria-label="Level for ${esc(u.name)}">${opts(u.level)}</select>
+        <button class="pinv" data-act="show" title="Show / hide PIN">••••</button>
+        <div class="acts"><button data-act="pin" title="Give ${esc(u.name)} a new PIN">New PIN</button><button data-act="signout" class="${u.signedIn ? 'is-in' : ''}" ${u.signedIn ? '' : 'disabled'} title="${u.signedIn ? `Sign ${esc(u.name)} out everywhere (signed in on ${u.signedIn} computer${u.signedIn === 1 ? '' : 's'})` : `${esc(u.name)} isn't signed in anywhere`}">Sign out</button><button data-act="remove" title="Take ${esc(u.name)}'s access away">Remove</button></div>
+      </div>`).join('');
+    $('#addLevel').value = d.open ? 'admin' : ($('#addLevel').value || 'operator');
+    $('#addLevel').disabled = d.open;
+  }
+  async function changePeople(body) {
+    const res = await fetch('/users', { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) { toast(j.error || "Didn't work", true); return null; }
+    return j;
+  }
+  $('#peopleList').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const u = people[b.closest('.person').dataset.i]; if (!u) return;
+    const act = b.dataset.act;
+    if (act === 'show') { b.textContent = b.textContent === u.pin ? '••••' : u.pin; return; }
+    if (act === 'pin') {
+      const typed = await askText(`New PIN for ${u.name}`, '4 to 12 numbers, or leave blank to have one made up');
+      if (typed === null && !(await askYes(`Make up a new PIN for ${u.name}?`, `${u.name} is signed out everywhere and signs in with the new PIN.`, 'Make one up'))) return;
+      const j = await changePeople({ op: 'pin', name: u.name, pin: typed || '' });
+      if (!j) return;
+      toast(`${u.name}'s new PIN: ${j.pin}`);
+      if (u.name === me.name) { await signIn(j.pin); afterSignIn(); await refreshMe(); }
+      drawPeople();
+      return;
+    }
+    if (act === 'signout') { if (await changePeople({ op: 'signout', name: u.name })) toast(`Signed out ${u.name}`); return; }
+    if (act === 'remove') {
+      if (!(await askYes(`Remove ${u.name}?`, `${u.name} can't use the remote anymore.`, 'Remove', true))) return;
+      if (await changePeople({ op: 'remove', name: u.name })) { toast(`Removed ${u.name}`); await refreshMe(); drawAccess(); }
+    }
+  });
+  $('#peopleList').addEventListener('change', async e => {
+    const sel = e.target.closest('select[data-act="level"]'); if (!sel) return;
+    const u = people[sel.closest('.person').dataset.i];
+    if (await changePeople({ op: 'level', name: u.name, level: sel.value })) {
+      toast(`${u.name} is now ${LEVEL_NAMES[sel.value]}`);
+      await refreshMe(); drawAccess();
+    } else drawPeople();
+  });
+  $('#addPerson').onclick = async () => {
+    const wasOpen = me.open;
+    const name = $('#addName').value.trim(), level = $('#addLevel').value, pinTyped = $('#addPin').value.trim();
+    if (!name) { $('#addName').focus(); return; }
+    const j = await changePeople({ op: 'add', name, level, pin: pinTyped });
+    if (!j) return;
+    $('#addName').value = ''; $('#addPin').value = '';
+    toast(`Added ${name}. PIN: ${j.pin}`);
+    // the first person makes PINs required; sign this computer in as them so it isn't locked out
+    if (wasOpen && !me.local) { await signIn(j.pin); afterSignIn(); }
+    await refreshMe(); drawAccess();
+  };
+  $('#addPin').addEventListener('keydown', e => { if (e.key === 'Enter') $('#addPerson').click(); });
+
   // ---------- live updates ----------
   let es;
+  // This remote checks in every 15 s so the Pro Remote window knows it's still open
+  // (a computer that goes to sleep or drops off the network is noticed within a minute).
+  const cid = Math.random().toString(36).slice(2, 10);
+  // Pressing anything counts as using the remote (after 3 days without use it asks for the PIN again)
+  let usedSince = false;
+  for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { usedSince = true; }, { capture: true, passive: true });
+  const alive = () => {
+    const used = usedSince; usedSince = false;
+    fetch('/alive?cid=' + cid + (document.hidden ? '&hidden=1' : '') + (used ? '&used=1' : ''), { method: 'POST', keepalive: true, headers: headers() }).catch(() => {});
+  };
+  setInterval(alive, 15000);
+  document.addEventListener('visibilitychange', alive);
   async function connect() {
-    const a = await fetch('/auth', { headers: headers() }).then(r => r.json()).catch(() => ({ ok: true }));
-    if (!a.ok) return showPin();
+    const a = await refreshMe();
+    if (a && !a.ok) { if (es) es.close(); return showPin(a.replaced ? 'replaced' : a.expired); }
     if (es) es.close();
-    es = new EventSource('/events' + pinQS());
+    es = new EventSource('/events?cid=' + cid + pinQS('&'));
     es.onmessage = e => render(JSON.parse(e.data));
-    es.onerror = () => { $('#dot').classList.remove('on'); $('#connText').textContent = 'Lost connection to remote server…'; };
+    es.onerror = () => {
+      $('#dot').classList.remove('on'); $('#connText').textContent = 'Lost connection to remote server…';
+      // the browser gives up when it's refused (e.g. signed out): check why and try again
+      if (es.readyState === EventSource.CLOSED) { clearTimeout(connect._t); connect._t = setTimeout(connect, 2500); }
+    };
   }
   connect();
   loadPlaylists(); loadTimers(); loadMacros(); loadStage(); showPnl(pnlSel);

@@ -1,4 +1,4 @@
-# Pro Remote 1.1.1 — control ProPresenter from another computer
+# Pro Remote 1.1.5 — control ProPresenter from another computer
 
 ![Pro Remote showing a playlist in Continuous view](docs/screenshot.png)
 
@@ -20,7 +20,7 @@ A browser-based control screen for ProPresenter 7, laid out like ProPresenter it
 - **Media bin** (button in the top bar): opens a drawer along the bottom of the playlists and slides, like ProPresenter's bin. **Media** and **Live Inputs** tabs (Live Inputs shows your cameras / capture / NDI inputs set up in ProPresenter: click one to put it live; the Video Input clear button takes it off), a playlist picker (folders included) and search. Click an item to play it; what's playing has an orange outline. Big playlists load fully (ProPresenter sends 100 items at a time; the remote asks for the rest).
 - Change slides by clicking them, or with → / ← / spacebar / Page Up-Down (works with a presentation clicker).
 - **↓ / ↑ pick the next / previous playlist item** without changing what's on screen (it gets a dashed outline and an "Up next" tag); the next → (or Space / clicker) puts its first slide live. Esc cancels.
-- **Hotkeys:** press **?** to see them all. Defaults: **F1** Clear All, **F2** Slide, **F3** Media, **F4** Audio, **F5** Props, **F6** Messages, **F7** Announcements, **F8** Live; **Home/End** first/last slide; **Song sections** have their own keys, matching our ProPresenter group hotkeys: **I** Intro · **A S D F G** Verse 1–5 · **P** Pre-Chorus · **C X Z** Chorus 1–3 · **B N M** Bridge 1–3 · **T** Tag · **E** Ending · **O** Outro (Post-Chorus, Interlude and Turnaround can be given keys too). A key jumps to the next time that section comes up in the live song, matched by the group names in ProPresenter ("V1" counts as Verse 1, a plain "Chorus" as Chorus 1). Media play/pause and skip, the media bin and Report a problem can also get keys. Change any of them in **⚙︎ Settings → Hotkeys** (saved per computer). On Mac laptops F-keys may need the fn key.
+- **Hotkeys:** press **?** to see them all. Defaults: **F1** Clear All, **F2** Slide, **F3** Media, **F4** Audio, **F5** Props, **F6** Messages, **F7** Announcements, **F8** Live; **Home/End** first/last slide; **Song sections** have their own keys, matching our ProPresenter group hotkeys: **I** Intro · **A S D F G** Verse 1–5 · **P** Pre-Chorus · **C X Z** Chorus 1–3 · **B N M** Bridge 1–3 · **T** Tag · **E** Ending · **O** Outro (Post-Chorus, Interlude and Turnaround can be given keys too). A key jumps to the next time that section comes up in the live song, matched by the group names in ProPresenter ("V1" counts as Verse 1, a plain "Chorus" as Chorus 1). Media play/pause and skip, the media bin and Report a problem can also get keys. Operators and Admins can change any of them in **⚙︎ Settings → Hotkeys** (saved per computer). On Mac laptops F-keys may need the fn key.
 - **Continuous** (switch at the top of the slides, on by default): like ProPresenter, the middle shows the **whole playlist in one scroll**: section headers as dividers, each song with its name and arrangement, then its slides. Click any slide of any song to put it live; media items show as a row you click to play. The view follows the live slide as it moves, and pressing Next on the last slide of an item goes on to the next item (skipping headers and hidden items). Big playlists load songs as you scroll. Planning Center plans, and items opened from the Library, show one item at a time. Turn Continuous off to always see one item at a time.
 
 **Playlists** are built and edited in ProPresenter. The remote shows them and plays from them, but doesn't change them (ProPresenter's API resets song arrangements when a playlist is saved from outside, so editing from the remote was removed).
@@ -29,15 +29,44 @@ A browser-based control screen for ProPresenter 7, laid out like ProPresenter it
 
 **Dark / Light mode:** ⚙︎ Settings → Appearance: Dark, Light, or Match computer (follows the computer's own setting). Saved on each computer.
 
-Several computers can use the remote at once and stay in sync. An optional PIN keeps others on the network out.
+Several computers can use the remote at once and stay in sync.
 
-**PIN:** set it in ⚙︎ Settings, or in the Pro Remote window (the Terminal window on the computer running the remote), which always shows the current PIN. Type there and press Enter:
-- `pin` shows the PIN
-- `pin 1234` sets the PIN to 1234
-- `pin off` removes the PIN
+## Who can use the remote
+Each person signs in with **their own PIN**, and each person has a **level**:
+
+| Level | Can |
+|---|---|
+| **Viewer** | watch: see the slides and what's live, but change nothing |
+| **Slides only** | go to slides and playlist items (Next / Previous, clicking slides, hotkeys) and use the Clear buttons |
+| **Operator** | run the service: everything above, plus media, audio, props, macros, timers, stage message and layouts, switching Looks, live inputs and the playback bar |
+| **Admin** | everything: also editing Looks, Audience / Stage screens on and off, capture start / stop, the ProPresenter connection, and managing people |
+
+The remote hides what a level can't use, and the helper program refuses it too.
+
+- **First start:** a new install makes an **Admin** with a made-up PIN and shows it in the Pro Remote window every time it starts, until you change it. Sign in with it, then add your team.
+- **Signing in:** a computer asks for a PIN once and remembers it. A remote that isn't used for **3 days** asks again (opening it or pressing anything counts as use; just leaving it open doesn't). Settings → Access shows who's signed in, with **Sign out**.
+- **One computer at a time:** each person (except Admins) can be signed in on one computer at a time. A PIN never signs anyone out, so nobody can take over someone's remote with their PIN. If that person is already signed in somewhere, the PIN is refused ("This PIN is already in use on another computer"). It works again once they sign out there, an Admin signs them out (Settings → Access → People), or 3 days pass without use. Admins can be signed in on as many computers as they like.
+- **The computer running the remote never needs a PIN** (it's always Admin), so you can't lock yourself out.
+- **Who's on:** in **⚙︎ Settings → Access → People**, a green dot marks anyone using the remote right now, and **Sign out** is highlighted for anyone signed in on some computer.
+- **Managing people:** Admins use **⚙︎ Settings → Access**: add someone (leave the PIN blank to have one made up), change their level, show their PIN, give them a new PIN, sign them out everywhere, or remove them. A new PIN signs that person out on every computer.
+- **Wrong PINs:** after 5 wrong tries, that computer waits a minute.
+- **Don't want PINs at all?** Remove everyone (Admin last). With nobody added, anyone on the network can use the remote with no PIN.
+- **Updating from 1.1.1 or earlier:** the old shared PIN becomes a person called *Admin* with the same PIN. With no PIN before, the remote stays open to everyone until you add someone.
+
+### Commands in the Pro Remote window
+The Pro Remote window (the Terminal window on the computer running the remote) takes commands. Type one and press Enter:
+- `users` lists everyone, their level and PIN
+- `add Sarah operator` adds Sarah and makes up a PIN for her (`add Sarah 2580 operator` to choose it). Levels: `viewer`, `slides`, `operator`, `admin`
+- `pin Sarah 2580` gives Sarah a new PIN
+- `level Sarah viewer` changes Sarah's level
+- `signout Sarah` signs Sarah out everywhere (`signout everyone` for all)
+- `remove Sarah` takes Sarah's access away
+- `remotes` (or `who`, or `connections`) shows how many remotes are open, who's on them and which computers they're on. The window also notes each one as it opens or closes; one that drops off (like a computer going to sleep) shows as "stopped responding" within a minute
 - `help` lists the commands
 
-Forgot the PIN? Look at that window, or type `pin` there. Remotes that are already open ask for the new PIN after it changes.
+**Forgot your PIN?** Ask whoever is at the ProPresenter computer to type `users` in the Pro Remote window.
+
+The Pro Remote window also logs who did what ("Sarah  GET /v1/trigger/next"), and problem reports say who sent them. PINs never go into problem reports. This keeps volunteers in their lane on your local network. It isn't bank-level security: the remote uses plain http, so someone determined on the same network could watch a PIN go by.
 
 ## Report a problem
 Click the **bug** button in the top bar (next to ⚙︎). The remote takes a screenshot of itself first, then asks what happened and what you were trying to do (name and reply email are optional). Along with it go the setup details (remote and ProPresenter versions, Mac/Windows, browser), what was on screen at the time, recent problems on the page, and the last 60 lines of the Terminal log. You can see everything before sending, and untick the screenshot. The PIN and stream keys are never included.
@@ -60,7 +89,8 @@ Double-click **Start Demo (Mac).command** or **Start Demo (Windows).bat**. It ru
    - You can still start it the old way with **Start Remote (Mac).command** / **Start Remote (Windows).bat**.
    The window shows an address like `http://192.168.1.50:4316`. Keep that window open while you use the remote.
 4. **On the computer you'll control from**, open that address in Chrome, Edge or Safari (same network as ProPresenter). Press F11 (Windows) or Ctrl+Cmd+F (Mac) for full screen.
-5. Tap **⚙︎** and enter ProPresenter's port from step 1 (leave the IP as `127.0.0.1` if the remote runs on the ProPresenter computer). Set a PIN here if you want one. The dot turns green when connected.
+5. Tap **⚙︎** and enter ProPresenter's port from step 1 (leave the IP as `127.0.0.1` if the remote runs on the ProPresenter computer). The dot turns green when connected.
+6. **Sign in and add your team:** the Pro Remote window shows the Admin PIN. Sign in with it on your control computer, then open **⚙︎ Settings → Access** to change your PIN and add people. (Skip this if you don't want PINs; see *Who can use the remote*.)
 
 ### Add the remote to your team's computers
 The computers you control from don't install anything; they just open the address. To give them a **Pro Remote** icon that opens in its own window:

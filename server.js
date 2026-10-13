@@ -18,7 +18,7 @@ const path = require('path');
 const os = require('os');
 
 // The demo keeps its own settings file so it never touches your real setup
-const APP_VERSION = '1.1.1';   // keep in step with PAGE_VERSION in public/index.html
+const APP_VERSION = '1.1.5';   // keep in step with PAGE_VERSION in public/index.html
 // Where settings and saved reports live: next to this file, or (for the Mac app) in the user's
 // Application Support folder, passed in as PRO_REMOTE_DATA
 const DATA_DIR = process.env.PRO_REMOTE_DATA || __dirname;
@@ -28,26 +28,49 @@ const DEFAULTS = {
   proHost: '127.0.0.1', // where ProPresenter is running
   proPort: 1025,        // ProPresenter > Settings > Network > Port
   remotePort: 4316,     // port this remote is served on (open http://<this computer>:4316)
-  pin: '',              // optional PIN required to use the remote ('' = no PIN)
+  users: [],            // people who can use the remote: { name, pin, level } ([] = open to anyone on the network)
   autoOpenBrowser: false // set true in config.json to open the remote in this computer's browser on start
 };
 
-let config = { ...DEFAULTS };
+let config = { ...DEFAULTS, users: [] };
+let firstRun = false;
 try {
-  config = { ...DEFAULTS, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) };
-} catch (_) { /* first run: use defaults */ }
+  config = { ...DEFAULTS, users: [], ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) };
+} catch (_) { firstRun = !fs.existsSync(CONFIG_FILE); /* first run: use defaults */ }
 delete config.openBrowser;
 // The remote used to run on 8080 (a port lots of other programs use too); move older setups to 4316
 if (config.remotePort === 8080) { config.remotePort = 4316; try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); } catch (_) {} }
-if (process.env.PRO_HOST) config.proHost = process.env.PRO_HOST;
-if (process.env.PRO_PORT) config.proPort = Number(process.env.PRO_PORT);
-if (process.env.REMOTE_PORT) config.remotePort = Number(process.env.REMOTE_PORT);
-if (process.env.REMOTE_PIN !== undefined) config.pin = process.env.REMOTE_PIN;
 
+const startupOnly = {};   // settings given when starting (REMOTE_PORT etc.): used, but not saved over the file's own
 function saveConfig() {
-  try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); } catch (e) {
+  const out = { ...config };
+  for (const [k, v] of Object.entries(startupOnly)) if (config[k] === v.used) out[k] = v.file;
+  try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(out, null, 2)); } catch (e) {
     console.error('Could not save config.json:', e.message);
   }
+}
+
+if (!Array.isArray(config.users)) config.users = [];
+// Before 1.1.5 there was one shared PIN; it becomes a person called "Admin" with that PIN
+if (config.pin && !config.users.length) {
+  config.users.push({ name: 'Admin', pin: String(config.pin), level: 'admin' });
+  config.pinMoved = true;
+}
+if ('pin' in config) { delete config.pin; saveConfig(); }
+// A new install starts protected: an Admin with a made-up PIN, shown in the Pro Remote window
+// until it's changed. (Not a fixed default PIN: that would be printed for anyone to read.)
+if (firstRun && !DEMO && !config.users.length) {
+  const pin = String(require('crypto').randomInt(100000, 1000000));
+  config.users.push({ name: 'Admin', pin, level: 'admin', starterPin: true });
+  saveConfig();
+}
+
+// Settings given when starting (not saved)
+for (const [key, env, num] of [['proHost', 'PRO_HOST'], ['proPort', 'PRO_PORT', 1], ['remotePort', 'REMOTE_PORT', 1]]) {
+  if (!process.env[env]) continue;
+  const used = num ? Number(process.env[env]) : process.env[env];
+  startupOnly[key] = { file: config[key], used };
+  config[key] = used;
 }
 
 const proBase = () => `http://${config.proHost}:${config.proPort}`;
@@ -306,7 +329,8 @@ const reports = (() => {
         appVersion: APP_VERSION, helperComputer: `${os.hostname()} · ${os.type()} ${os.release()} · Node ${process.version}`,
         proPresenter: `${state.version?.name || '?'} ${state.version?.host_description || ''} at ${config.proHost}:${config.proPort}`,
         connected: state.connected, liveUpdates: state.liveUpdates, helperError: state.error || '',
-        sentFrom: `${req.socket.remoteAddress || '?'}`
+        sentFrom: `${req.socket.remoteAddress || '?'}`,
+        signedInAs: clip(body.signedInAs, 80)
       },
       page: d,                               // browser, screen size, what was live, recent page errors
       terminalLog: recentLog.slice(-60)
@@ -323,6 +347,7 @@ const reports = (() => {
       `From: ${r.name || '(no name)'}${r.email ? ' <' + r.email + '>' : ''}`, '',
       'SETUP',
       `Pro Remote ${r.remote.appVersion}`, `Helper computer: ${r.remote.helperComputer}`,
+      r.remote.signedInAs ? `Signed in as: ${r.remote.signedInAs}` : null,
       `ProPresenter: ${r.remote.proPresenter}`, `Connected: ${r.remote.connected} · Updates: ${r.remote.liveUpdates}`,
       r.remote.helperError ? `Helper error: ${r.remote.helperError}` : '',
       `Browser: ${p.browser || '?'}`, `Window: ${p.window || '?'}`, '',
@@ -438,24 +463,241 @@ function readBody(req, limit = 1e6) {
   });
 }
 
-function authorized(req, url) {
-  if (!config.pin) return true;
-  const given = req.headers['x-remote-pin'] || url.searchParams.get('pin');
-  return given === config.pin;
+// ---------- people and access levels ----------
+// Each person has their own PIN and one of four levels. With nobody added, the remote is open
+// to anyone on the network (everyone is Admin). The computer running the remote is always Admin.
+const LEVELS = ['viewer', 'slides', 'operator', 'admin'];
+const LEVEL_NAMES = { viewer: 'Viewer', slides: 'Slides only', operator: 'Operator', admin: 'Admin' };
+const lv = level => Math.max(0, LEVELS.indexOf(level));
+const SIGN_OUT_AFTER = Number(process.env.PRO_REMOTE_IDLE_MS) || 3 * 24 * 3600e3;   // 3 days without use
+const LOCAL_ADMIN = !process.env.PRO_REMOTE_NO_LOCAL_ADMIN;                         // (switched off only in tests)
+const SESSIONS_FILE = CONFIG_FILE.replace(/\.json$/i, '') + '-sessions.json';
+
+let sessions = {};   // token -> { name, lastActive }
+try { sessions = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8')) || {}; } catch (_) {}
+let sessionsTimer;
+function saveSessions() {
+  clearTimeout(sessionsTimer);
+  sessionsTimer = setTimeout(() => {
+    try { fs.writeFileSync(SESSIONS_FILE, JSON.stringify(sessions)); } catch (e) { console.error('Could not save sign-ins:', e.message); }
+  }, 300);
 }
+const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+const findUser = name => config.users.find(u => sameName(u.name, name));
+const isLocal = req => /^(127\.0\.0\.1|::1|::ffff:127\.0\.0\.1)$/.test(String(req.socket.remoteAddress || ''));
+const ipOf = req => String(req.socket.remoteAddress || '?').replace(/^::ffff:/, '');
+
+const expiredTokens = new Set();    // so a remote signed out for not being used can say why
+const replacedTokens = new Set();   // ...or because that person signed in on another computer
+// Everyone but Admins can be signed in on one computer at a time (a second sign-in is refused at /signin).
+// When an Admin is changed to another level, this keeps only their newest sign-in.
+function oneComputerOnly(name, keepToken) {
+  const user = findUser(name);
+  if (!user || user.level === 'admin') return 0;
+  let n = 0;
+  for (const [tok, s] of Object.entries(sessions)) {
+    if (tok === keepToken || !sameName(s.name, name)) continue;
+    delete sessions[tok]; replacedTokens.add(tok); n++;
+    for (const r of remoteInfo.values()) if (r.token === tok) { r.reason = 'signed in on another computer'; try { r.res.destroy(); } catch (_) {} }
+    logLine(`  ${new Date().toLocaleTimeString()}  ${user.name} signed out on ${s.ip || 'another computer'} (no longer an Admin; one computer at a time)`);
+  }
+  if (n) saveSessions();
+  return n;
+}
+// Who is making this request, and what may they do?
+function identify(req, url) {
+  if (!config.users.length) return { ok: true, open: true, level: 'admin', name: '' };
+  const token = String(req.headers['x-remote-token'] || url.searchParams.get('t') || '');
+  const s = token && Object.prototype.hasOwnProperty.call(sessions, token) ? sessions[token] : null;
+  const user = s && findUser(s.name);
+  if (s && !user) { delete sessions[token]; saveSessions(); }
+  let expired = !s && expiredTokens.has(token);
+  const replaced = !s && replacedTokens.has(token);
+  if (user && Date.now() - s.lastActive > SIGN_OUT_AFTER) {
+    delete sessions[token]; saveSessions(); expired = true; expiredTokens.add(token);
+    logLine(`  ${new Date().toLocaleTimeString()}  ${user.name} was signed out on ${ipOf(req)} (3 days without use)`);
+  } else if (user) return { ok: true, name: user.name, level: user.level, token, session: s };
+  if (LOCAL_ADMIN && isLocal(req)) return { ok: true, local: true, level: 'admin', name: '', expired, replaced };
+  return { ok: false, expired, replaced };
+}
+// Using the remote (opening it, pressing anything) keeps a sign-in going for another 3 days
+function touch(who) {
+  if (who && who.session) { who.session.lastActive = Date.now(); saveSessions(); }
+}
+const whoName = who => who.name || (who.local ? 'this computer' : '');
+
+// The level a ProPresenter request needs. Reads are open to every level.
+function needLevel(method, t) {
+  t = t.split('?')[0];
+  if (method !== 'GET') {
+    if (/^\/v1\/looks?(\/|$)/.test(t)) return 'admin';                       // add / edit / delete Looks
+    if (/^\/v1\/status\/(audience|stage)_screens/.test(t)) return 'admin';   // screens on / off
+    if (/^\/v1\/capture\//.test(t)) return 'admin';
+    if (/^\/v1\/(stage\/message|stage\/screen\/|transport\/|timers?\/)/.test(t)) return 'operator';
+    return 'admin';                                                           // anything else that changes ProPresenter
+  }
+  if (/^\/v1\/capture\/(start|stop)/.test(t)) return 'admin';
+  if (/^\/v1\/trigger\/(next|previous)$|^\/v1\/trigger\/cue\/|^\/v1\/trigger\/playlist\/|^\/v1\/playlist\/.+\/trigger$|^\/v1\/presentation\/.+\/trigger(\/|$)|^\/v1\/clear\/(layer|group)\//.test(t)) return 'slides';
+  if (/trigger|\/clear|\/(next|previous)$|\/operation|\/(start|stop|reset)$|\/stage\/screen\/[^/]+\/layout\/[^/?]+|\/transport\/[^/]+\/(play|pause|skip_forward|skip_backward|go_to_end)/.test(t)) return 'operator';
+  return 'viewer';
+}
+
+// Wrong PINs: after 5 from one computer, it waits a minute
+const failedSignIns = new Map();   // ip -> { n, until }
+
+// Adding and changing people (from the Pro Remote window, or by an Admin in Settings)
+function changeUsers(op, a, by) {
+  const users = config.users;
+  const name = String(a.name || '').trim().replace(/\s+/g, ' ');
+  const user = findUser(name);
+  const admins = users.filter(u => u.level === 'admin');
+  const checkPin = (pin, except) => {
+    pin = String(pin || '').trim();
+    if (!/^\d{4,12}$/.test(pin)) return [null, 'A PIN is 4 to 12 numbers.'];
+    if (users.some(u => u !== except && u.pin === pin)) return [null, 'Someone already has that PIN. Each person needs their own.'];
+    return [pin];
+  };
+  const by_ = by ? ` (by ${by})` : '';
+  const t = new Date().toLocaleTimeString();
+  if (op === 'add') {
+    if (!name || name.length > 30) return { error: 'Give a name, up to 30 characters.' };
+    if (user) return { error: `There's already someone called ${user.name}.` };
+    const level = String(a.level || '').toLowerCase();
+    if (!LEVELS.includes(level)) return { error: 'The level must be viewer, slides, operator or admin.' };
+    if (!users.length && level !== 'admin') return { error: 'The first person added must be an Admin, so someone can manage access.' };
+    const [pin, err] = checkPin(a.pin); if (err) return { error: err };
+    users.push({ name, pin, level }); saveConfig();
+    logLine(`  ${t}  Added ${name} (${LEVEL_NAMES[level]})${by_}`);
+    return { ok: true };
+  }
+  if (!user) return { error: `Nobody called "${name}".` };
+  const onlyAdmin = user.level === 'admin' && admins.length === 1 && users.length > 1;
+  if (op === 'remove') {
+    if (onlyAdmin) return { error: `${user.name} is the only Admin. Make someone else an Admin first.` };
+    config.users = users.filter(u => u !== user); saveConfig();
+    signOut(user.name);
+    logLine(`  ${t}  Removed ${user.name}${by_}` + (config.users.length ? '' : '. Nobody is left, so the remote is open to anyone on the network.'));
+    return { ok: true };
+  }
+  if (op === 'level') {
+    const level = String(a.level || '').toLowerCase();
+    if (!LEVELS.includes(level)) return { error: 'The level must be viewer, slides, operator or admin.' };
+    if (onlyAdmin && level !== 'admin') return { error: `${user.name} is the only Admin. Make someone else an Admin first.` };
+    user.level = level; saveConfig();
+    if (level !== 'admin') {
+      const newest = Object.entries(sessions).filter(([, x]) => sameName(x.name, user.name)).sort((a, b) => b[1].lastActive - a[1].lastActive)[0];
+      if (newest) oneComputerOnly(user.name, newest[0]);
+    }
+    logLine(`  ${t}  ${user.name} is now ${LEVEL_NAMES[level]}${by_}`);
+    return { ok: true };
+  }
+  if (op === 'pin') {
+    const [pin, err] = checkPin(a.pin, user); if (err) return { error: err };
+    user.pin = pin; delete user.starterPin; saveConfig();
+    signOut(user.name);   // a new PIN signs them out everywhere, in case the old one got around
+    logLine(`  ${t}  ${user.name}'s PIN was changed${by_}`);
+    return { ok: true };
+  }
+  if (op === 'signout') {
+    const n = signOut(user.name);
+    logLine(`  ${t}  Signed out ${user.name} (${n} sign-in${n === 1 ? '' : 's'})${by_}`);
+    return { ok: true };
+  }
+  return { error: 'Unknown change' };
+}
+function signOut(name) {
+  let n = 0;
+  for (const [tok, s] of Object.entries(sessions)) if (sameName(s.name, name)) { delete sessions[tok]; n++; }
+  saveSessions();
+  // close their open remotes; they reconnect and are asked for a PIN
+  for (const r of remoteInfo.values()) if (r.user && sameName(r.user, name)) { r.reason = 'signed out'; try { r.res.destroy(); } catch (_) {} }
+  return n;
+}
+function signedInCount(name) {
+  return Object.values(sessions).filter(s => sameName(s.name, name) && Date.now() - s.lastActive <= SIGN_OUT_AFTER).length;
+}
+function lastUsed(name) {
+  let last = 0;
+  for (const s of Object.values(sessions)) if (sameName(s.name, name)) last = Math.max(last, s.lastActive);
+  return last;
+}
+// Remotes left open past 3 days without use are closed, so they ask for the PIN again
+setInterval(() => {
+  for (const r of remoteInfo.values()) {
+    if (!r.token) continue;
+    const s = sessions[r.token];
+    if (!s || Date.now() - s.lastActive > SIGN_OUT_AFTER) { r.reason = 'signed out'; try { r.res.destroy(); } catch (_) {} }
+  }
+}, Math.min(60000, SIGN_OUT_AFTER / 4)).unref();
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const p = url.pathname;
 
   try {
-    // --- PIN check endpoint (always reachable) ---
+    // --- who am I? (always reachable) ---
     if (p === '/auth') {
-      return send(res, authorized(req, url) ? 200 : 401, { pinRequired: !!config.pin, ok: authorized(req, url) });
+      const who = identify(req, url);
+      return send(res, who.ok ? 200 : 401, {
+        ok: who.ok, open: !!who.open, local: !!who.local, expired: !!who.expired, replaced: !!who.replaced,
+        name: who.name || '', level: who.ok ? who.level : '', levelName: who.ok ? LEVEL_NAMES[who.level] : '',
+        idleDays: Math.round(SIGN_OUT_AFTER / 864e5 * 10) / 10
+      });
+    }
+
+    // --- sign in with your PIN ---
+    if (p === '/signin' && req.method === 'POST') {
+      const ip = ipOf(req), f = failedSignIns.get(ip);
+      if (f && f.until > Date.now()) return send(res, 429, { error: 'Too many wrong PINs. Wait a minute and try again.' });
+      let body = {};
+      try { body = JSON.parse((await readBody(req)).toString() || '{}'); } catch (_) {}
+      const pin = String(body.pin || '').trim();
+      const user = pin && config.users.find(u => u.pin === pin);
+      if (!user) {
+        const n = (f && f.until <= Date.now() && f.n >= 5 ? 0 : (f ? f.n : 0)) + 1;
+        failedSignIns.set(ip, { n, until: n >= 5 ? Date.now() + 60000 : 0 });
+        logLine(`  ${new Date().toLocaleTimeString()}  Wrong PIN from ${ip}`);
+        return send(res, 401, { error: n >= 5 ? 'Too many wrong PINs. Wait a minute and try again.' : "That PIN isn't right." });
+      }
+      failedSignIns.delete(ip);
+      // Everyone but Admins can be signed in on one computer at a time. A PIN never signs anyone out
+      // (so someone who learned it can't take over): it's refused until that sign-in ends.
+      if (user.level !== 'admin' && signedInCount(user.name) > 0) {
+        const where = Object.values(sessions).find(x => sameName(x.name, user.name) && Date.now() - x.lastActive <= SIGN_OUT_AFTER);
+        logLine(`  ${new Date().toLocaleTimeString()}  ${user.name}'s PIN was used on ${ip}, but ${user.name} is already signed in on ${where?.ip || 'another computer'}. Refused.`);
+        return send(res, 409, { error: 'This PIN is already in use on another computer. Sign out there first, or ask an Admin to sign you out.' });
+      }
+      const token = require('crypto').randomBytes(24).toString('base64url');
+      sessions[token] = { name: user.name, lastActive: Date.now(), ip };
+      saveSessions();
+      logLine(`  ${new Date().toLocaleTimeString()}  ${user.name} (${LEVEL_NAMES[user.level]}) signed in on ${ip}`);
+      return send(res, 200, { ok: true, token, name: user.name, level: user.level, levelName: LEVEL_NAMES[user.level] });
+    }
+    if (p === '/signout' && req.method === 'POST') {
+      const token = String(req.headers['x-remote-token'] || '');
+      const s = token && Object.prototype.hasOwnProperty.call(sessions, token) ? sessions[token] : null;
+      if (s) {
+        delete sessions[token]; saveSessions();
+        logLine(`  ${new Date().toLocaleTimeString()}  ${s.name} signed out on ${ipOf(req)}`);
+      }
+      return send(res, 200, { ok: true });
+    }
+
+    // --- an open remote checking in (so remotes that vanish, e.g. a computer asleep, are noticed) ---
+    if (p === '/alive' && req.method === 'POST') {
+      const cid = url.searchParams.get('cid');
+      let found = false;
+      for (const r of remoteInfo.values()) {
+        if (cid && r.cid === cid) { r.lastSeen = Date.now(); r.hidden = url.searchParams.has('hidden'); found = true; }
+      }
+      // someone pressed something on this remote since its last check-in: that's use, for the 3-day rule
+      if (found && url.searchParams.has('used')) touch(identify(req, url));
+      res.writeHead(found ? 204 : 404, { 'Cache-Control': 'no-store' });
+      return res.end();
     }
 
     // --- static files ---
-    if (!p.startsWith('/pp/') && !['/events', '/config', '/report'].includes(p)) {
+    if (!p.startsWith('/pp/') && !['/events', '/config', '/report', '/users'].includes(p)) {
       const file = p === '/' ? 'index.html' : p.slice(1);
       const full = path.join(__dirname, 'public', path.normalize(file));
       if (!full.startsWith(path.join(__dirname, 'public'))) return send(res, 403, 'Forbidden', 'text/plain');
@@ -465,7 +707,13 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (!authorized(req, url)) return send(res, 401, { error: 'PIN required' });
+    const who = identify(req, url);
+    if (!who.ok) return send(res, 401, {
+      error: who.replaced ? 'Signed in on another computer' : who.expired ? 'Signed out after 3 days without use' : 'PIN required',
+      expired: !!who.expired, replaced: !!who.replaced
+    });
+    const allowed = level => lv(who.level) >= lv(level);
+    const refuse = () => send(res, 403, { error: `${LEVEL_NAMES[who.level]} access can't do that`, level: who.level });
 
     // --- live updates ---
     if (p === '/events') {
@@ -476,26 +724,35 @@ const server = http.createServer(async (req, res) => {
       });
       res.write('retry: 2000\n\n');
       clients.add(res);
+      touch(who);
+      const r = describeRemote(req);
+      r.cid = url.searchParams.get('cid') || '';   // older pages don't check in, so they're never timed out
+      r.lastSeen = Date.now(); r.hidden = false;
+      r.res = res;
+      r.user = who.name || ''; r.token = who.token || '';
+      if (r.user) r.label = `${r.user} on ${r.label}`;
+      remoteInfo.set(res, r);
+      logLine(`  ${new Date().toLocaleTimeString()}  Remote opened: ${r.label}.  ${remotesSummary()}`);
       res.write(`data: ${JSON.stringify(publicState())}\n\n`);
       const ka = setInterval(() => res.write(': ping\n\n'), 15000);
-      req.on('close', () => { clearInterval(ka); clients.delete(res); });
+      req.on('close', () => {
+        clearInterval(ka); clients.delete(res); remoteInfo.delete(res);
+        logLine(`  ${new Date().toLocaleTimeString()}  Remote closed${r.reason ? ` (${r.reason})` : ''}: ${r.label}.  ${remotesSummary()}`);
+      });
       return;
     }
 
     // --- settings ---
     if (p === '/config') {
       if (req.method === 'GET') {
-        return send(res, 200, { proHost: config.proHost, proPort: config.proPort, pinSet: !!config.pin });
+        return send(res, 200, { proHost: config.proHost, proPort: config.proPort });
       }
       if (req.method === 'POST') {
+        if (!allowed('admin')) return refuse();
+        touch(who);
         const body = JSON.parse((await readBody(req)).toString() || '{}');
         if (body.proHost) config.proHost = String(body.proHost).trim();
         if (body.proPort) config.proPort = Number(body.proPort);
-        if (typeof body.pin === 'string' && body.pin.trim() !== (config.pin || '')) {
-          config.pin = body.pin.trim();
-          // shown in this window only (never in the log that goes with problem reports)
-          console.log(config.pin ? `\n  PIN changed in a remote's Settings. PIN: ${config.pin}\n` : '\n  PIN removed in a remote\'s Settings. PIN: off\n');
-        }
         saveConfig();
         state.connected = false;
         state.version = null;
@@ -507,12 +764,40 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // --- people (Admins only) ---
+    if (p === '/users') {
+      if (!allowed('admin')) return refuse();
+      if (req.method === 'GET') {
+        return send(res, 200, {
+          open: !config.users.length,
+          levels: LEVELS.map(id => ({ id, name: LEVEL_NAMES[id] })),
+          users: config.users.map(u => ({
+            name: u.name, pin: u.pin, level: u.level, levelName: LEVEL_NAMES[u.level], lastUsed: lastUsed(u.name) || null,
+            signedIn: signedInCount(u.name),                                                    // computers signed in as them
+            online: [...remoteInfo.values()].filter(r => r.user && sameName(r.user, u.name)).length   // remotes open right now
+          }))
+        });
+      }
+      if (req.method === 'POST') {
+        touch(who);
+        let body = {};
+        try { body = JSON.parse((await readBody(req)).toString() || '{}'); } catch (_) {}
+        const op = String(body.op || '');
+        if ((op === 'add' || op === 'pin') && !String(body.pin || '').trim()) body.pin = makePin();   // left blank: make one up
+        const out = changeUsers(op, body, whoName(who) || ipOf(req));
+        if (out.ok && (op === 'add' || op === 'pin')) out.pin = String(body.pin).trim();
+        return send(res, out.ok ? 200 : 400, out);
+      }
+    }
+
     // --- problem reports ---
     if (p === '/report' && req.method === 'GET') return send(res, 200, reports.info());
     if (p === '/report' && req.method === 'POST') {
       let body;
       try { body = JSON.parse((await readBody(req, 12e6)).toString() || '{}'); }
       catch (_) { return send(res, 400, { error: 'Report was too big or unreadable' }); }
+      touch(who);
+      body.signedInAs = whoName(who) ? `${whoName(who)} (${LEVEL_NAMES[who.level]})` : (who.open ? 'open access' : '');
       return send(res, 200, await reports.submit(body, req));
     }
 
@@ -522,7 +807,14 @@ const server = http.createServer(async (req, res) => {
       return send(res, 403, { error: 'Playlists are edited in ProPresenter, not from the remote' });
     }
     if (p.startsWith('/pp/')) {
-      const target = p.slice(3) + url.search.replace(/([?&])pin=[^&]*&?/, '$1').replace(/[?&]$/, '');
+      const keep = url.search.slice(1).split('&').filter(x => x && !/^(t|pin)=/.test(x));   // sign-in stays here
+      const target = p.slice(3) + (keep.length ? '?' + keep.join('&') : '');
+      const need = needLevel(req.method, target);
+      if (!allowed(need)) {
+        logLine(`  ${new Date().toLocaleTimeString()}  ${whoName(who) || ipOf(req)} (${LEVEL_NAMES[who.level]}) isn't allowed: ${req.method} ${target}`);
+        return refuse();
+      }
+      if (need !== 'viewer') touch(who);
       const body = ['POST', 'PUT', 'PATCH'].includes(req.method) ? await readBody(req) : undefined;
       let upstream;
       try {
@@ -536,7 +828,8 @@ const server = http.createServer(async (req, res) => {
       if (isCommand || (!upstream.ok && !target.includes('/thumbnail'))) {   // commands, and anything that failed
         const t = new Date().toLocaleTimeString();
         const note = upstream.ok ? 'OK' : `FAILED ${buf.toString('utf8').replace(/\s+/g, ' ').slice(0, 100)}`;
-        logLine(`  ${t}  ${req.method} ${target}  ->  ${upstream.status} ${note}`);
+        const by = whoName(who) ? `${whoName(who)}  ` : '';
+        logLine(`  ${t}  ${by}${req.method} ${target}  ->  ${upstream.status} ${note}`);
       }
       res.writeHead(upstream.status, {
         'Content-Type': upstream.headers.get('content-type') || 'application/octet-stream',
@@ -572,38 +865,144 @@ function lanAddresses() {
   return out;
 }
 
-// ---------- PIN from this window ----------
-// The PIN is printed with console.log only, so it never lands in the log that goes with problem reports.
-function printPin() {
-  console.log(config.pin ? `  PIN: ${config.pin}` : '  PIN: off (anyone on this network can use the remote)');
+// ---------- who is connected ----------
+// One entry per open remote (a browser tab or window showing the remote).
+const remoteInfo = new Map();
+function describeRemote(req) {
+  let ip = String(req.socket.remoteAddress || '?').replace(/^::ffff:/, '');
+  const local = ip === '127.0.0.1' || ip === '::1';
+  const ua = String(req.headers['user-agent'] || '');
+  const browser = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox'
+    : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'a browser';
+  const system = /iPad/.test(ua) ? 'iPad' : /iPhone/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : '';
+  const place = local ? 'this computer' : ip;
+  return { ip: local ? 'this computer' : ip, since: new Date(), label: `${place} (${browser}${system ? ' on ' + system : ''})` };
 }
-const pinCommandsOn = !!process.stdin.isTTY;
-if (pinCommandsOn) {
-  const rl = require('readline').createInterface({ input: process.stdin, terminal: false });
-  rl.on('line', line => {
-    const [cmd, ...rest] = line.trim().split(/\s+/);
-    const arg = rest.join(' ');
-    if (!cmd) return;
-    if (/^pin$/i.test(cmd)) {
-      if (!arg) { printPin(); return; }
-      if (/^(off|none|remove)$/i.test(arg)) {
-        config.pin = ''; saveConfig();
-        console.log('\n  PIN removed. PIN: off (anyone on this network can use the remote)\n');
-        return;
-      }
-      if (/\s/.test(arg) || arg.length > 20) { console.log('  A PIN is one word with no spaces, up to 20 characters. Example:  pin 1234'); return; }
-      config.pin = arg; saveConfig();
-      console.log(`\n  PIN changed. PIN: ${config.pin}\n  Remotes that are open will ask for the new PIN.\n`);
-      return;
+function remotesSummary() {
+  const n = remoteInfo.size;
+  const computers = new Set([...remoteInfo.values()].map(r => r.ip)).size;
+  if (!n) return 'No remotes open.';
+  return `Remotes open: ${n}` + (computers !== n ? ` on ${computers} computer${computers === 1 ? '' : 's'}` : '') + '.';
+}
+// Each open remote checks in every 15 s. One that goes quiet (computer asleep, Wi-Fi dropped, cable pulled)
+// is closed after 45 s, or 3 minutes if its tab was in the background (browsers slow down background tabs).
+const ALIVE_LIMIT = 45000, ALIVE_LIMIT_HIDDEN = 180000;
+setInterval(() => {
+  const now = Date.now();
+  for (const r of remoteInfo.values()) {
+    if (!r.cid || r.reason) continue;
+    if (now - r.lastSeen > (r.hidden ? ALIVE_LIMIT_HIDDEN : ALIVE_LIMIT)) {
+      r.reason = 'stopped responding';
+      try { r.res.destroy(); } catch (_) {}
     }
-    if (/^(help|\?)$/i.test(cmd)) {
-      console.log('\n  Commands (type, then press Enter):\n' +
-        '     pin           show the PIN\n' +
-        '     pin 1234      set the PIN to 1234\n' +
-        '     pin off       remove the PIN\n' +
-        '     help          show this list\n' +
+  }
+}, 5000).unref();
+
+function printRemotes() {
+  console.log(`\n  ${remotesSummary()}`);
+  for (const r of remoteInfo.values()) {
+    console.log(`     ${r.label}, open since ${r.since.toLocaleTimeString()}${r.hidden ? ' (in the background)' : ''}`);
+  }
+  console.log('');
+}
+
+// ---------- people, from this window ----------
+// PINs are printed with console.log only, so they never land in the log that goes with problem reports.
+function makePin(digits = 6) {
+  for (;;) {
+    const pin = String(require('crypto').randomInt(10 ** (digits - 1), 10 ** digits));
+    if (!config.users.some(u => u.pin === pin)) return pin;
+  }
+}
+function printAccess() {
+  if (!config.users.length) {
+    console.log('  Access: open. Anyone on this network can use the remote, no PIN needed.');
+    if (commandsOn) console.log('  To require PINs, add yourself as an Admin, e.g.  add Gavin admin');
+    return;
+  }
+  const starter = config.users.find(u => u.starterPin);
+  if (starter) {
+    console.log(`  ${starter.name} PIN: ${starter.pin}   (type it on a remote to sign in)`);
+    if (commandsOn) console.log(`  This PIN was made up for you. Change it with  pin ${starter.name} 1234 , add your team with  add Sarah operator ,\n  or type  help  for everything else.`);
+  } else {
+    console.log(`  Access: each person signs in with their own PIN (${config.users.length} ${config.users.length === 1 ? 'person' : 'people'}).` +
+      (commandsOn ? ' Type  users  to see who, and their PINs.' : ''));
+  }
+  console.log('  This computer never needs a PIN.');
+}
+function printUsers() {
+  if (!config.users.length) { console.log('\n  Nobody added: anyone on this network can use the remote.\n  Add someone with  add Sarah operator\n'); return; }
+  const w = Math.max(6, ...config.users.map(u => u.name.length)) + 2;
+  console.log(`\n  People (${config.users.length}):`);
+  for (const u of config.users) {
+    const last = lastUsed(u.name);
+    console.log(`     ${u.name.padEnd(w)}${LEVEL_NAMES[u.level].padEnd(13)}PIN ${u.pin.padEnd(10)}${last ? 'last used ' + new Date(last).toLocaleString([], { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not signed in'}`);
+  }
+  console.log('  Levels: viewer (watch only) · slides (slides + Clear) · operator (runs the service) · admin (everything)\n');
+}
+const commandsOn = !!process.stdin.isTTY;
+if (commandsOn) {
+  const rl = require('readline').createInterface({ input: process.stdin, terminal: false });
+  const say = out => console.log(out.ok ? '' : `  ${out.error}`);
+  rl.on('line', line => {
+    const words = line.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return;
+    const cmd = words[0].toLowerCase(), rest = words.slice(1);
+    const isLevel = w => LEVELS.includes(String(w).toLowerCase());
+    const isPin = w => /^\d+$/.test(String(w));
+    if (cmd === 'users' || cmd === 'people' || (cmd === 'pin' && !rest.length)) return printUsers();
+    if (cmd === 'add') {
+      // add <name> [pin] <level>
+      if (rest.length < 2 || !isLevel(rest[rest.length - 1])) return console.log('  Type  add Sarah operator  (makes a PIN for her) or  add Sarah 2580 operator');
+      const level = rest.pop();
+      const pin = rest.length > 1 && isPin(rest[rest.length - 1]) ? rest.pop() : makePin();
+      const out = changeUsers('add', { name: rest.join(' '), pin, level }, '');
+      if (!out.ok) return say(out);
+      return console.log(`  ${findUser(rest.join(' ')).name}'s PIN: ${pin}\n`);
+    }
+    if (cmd === 'remove') {
+      if (!rest.length) return console.log('  Type  remove Sarah');
+      return say(changeUsers('remove', { name: rest.join(' ') }, ''));
+    }
+    if (cmd === 'pin') {
+      // pin <name> <new pin>
+      if (rest.length < 2 || !isPin(rest[rest.length - 1])) return console.log('  Type  pin Sarah 2580  to give Sarah a new PIN.  users  shows everyone\'s PIN.');
+      const pin = rest.pop(), name = rest.join(' ');
+      const out = changeUsers('pin', { name, pin }, '');
+      if (!out.ok) return say(out);
+      return console.log(`  ${findUser(name).name}'s PIN: ${pin}  (they're signed out and sign in with the new one)\n`);
+    }
+    if (cmd === 'level') {
+      if (rest.length < 2 || !isLevel(rest[rest.length - 1])) return console.log('  Type  level Sarah viewer   (viewer, slides, operator or admin)');
+      const level = rest.pop();
+      return say(changeUsers('level', { name: rest.join(' '), level }, ''));
+    }
+    if (cmd === 'signout') {
+      if (!rest.length) return console.log('  Type  signout Sarah  (or  signout everyone)');
+      if (/^(everyone|all)$/i.test(rest.join(' '))) {
+        for (const u of config.users) signOut(u.name);
+        return logLine(`  ${new Date().toLocaleTimeString()}  Signed everyone out`);
+      }
+      return say(changeUsers('signout', { name: rest.join(' ') }, ''));
+    }
+    if (cmd === 'remotes' || cmd === 'connections' || cmd === 'who') return printRemotes();
+    if (cmd === 'help' || cmd === '?') {
+      return console.log('\n  Commands (type, then press Enter):\n' +
+        '     users                     everyone who can use the remote, their level and PIN\n' +
+        '     add Sarah operator        add Sarah and make up a PIN for her\n' +
+        '     add Sarah 2580 operator   add Sarah with PIN 2580\n' +
+        '     pin Sarah 2580            give Sarah a new PIN\n' +
+        '     level Sarah viewer        change Sarah\'s level\n' +
+        '     signout Sarah             sign Sarah out everywhere   (signout everyone  for all)\n' +
+        '     remove Sarah              take Sarah\'s access away\n' +
+        '     remotes                   show how many remotes are open, and who / where\n' +
+        '     who                       same as remotes\n' +
+        '     connections               same as remotes\n' +
+        '     help                      show this list\n' +
+        '  Levels: viewer (watch only) · slides (slides + Clear) · operator (runs the service) · admin (everything)\n' +
+        `  A remote not used for ${Math.round(SIGN_OUT_AFTER / 864e5)} days asks for the PIN again. With nobody added, no PIN is needed.\n` +
         '  Press Ctrl+C to stop the remote.\n');
-      return;
     }
     console.log(`  Unknown command "${cmd}". Type  help  for the list.`);
   });
@@ -619,9 +1018,12 @@ server.listen(config.remotePort, '0.0.0.0', () => {
   for (const a of addrs) console.log(`     http://${a}:${config.remotePort}`);
   console.log(`     http://localhost:${config.remotePort}  (this computer)`);
   console.log('');
-  printPin();
-  if (pinCommandsOn) console.log('  To change it, type  pin 1234  and press Enter.  pin off  removes it.  help  lists commands.');
-  console.log('\n  Press Ctrl+C to stop.\n');
+  if (config.pinMoved) {
+    console.log('  The old shared PIN is now a person called Admin (same PIN). Give each person their own with  add Sarah operator');
+    delete config.pinMoved; saveConfig();
+  }
+  printAccess();
+  console.log(commandsOn ? '\n  Type  help  for commands.  Press Ctrl+C to stop.\n' : '\n  Press Ctrl+C to stop.\n');
   pollLoop();
   openBrowser(`http://localhost:${config.remotePort}`);
 });

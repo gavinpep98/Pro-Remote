@@ -1,6 +1,7 @@
-# Settings saved on each computer (ProPresenter address, PIN)
+# Settings saved on each computer (ProPresenter address, people and their PINs, who's signed in)
 config.json
 demo/demo-config.json
+*-sessions.json
 # Problem reports saved by the helper
 reports/
 node_modules/
