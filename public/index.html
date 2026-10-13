@@ -688,8 +688,9 @@
     <input id="proHost" placeholder="127.0.0.1" inputmode="decimal" autocomplete="off">
     <label for="proPort">Port</label>
     <input id="proPort" placeholder="1025" inputmode="numeric">
-    <label for="newPin">Remote PIN (leave blank for no PIN)</label>
+    <label for="newPin">Remote PIN</label>
     <input id="newPin" placeholder="e.g. 4321" inputmode="numeric" autocomplete="off">
+    <p class="muted small" style="margin:4px 0 0">The PIN is also shown in the Pro Remote window on the computer running the remote. Type <b>pin 1234</b> there to change it, or <b>pin off</b> to remove it.</p>
     <div class="set-sec">
       <strong>Clear buttons</strong>
       <p class="muted small" style="margin:6px 0 0">Choose which clear buttons show next to the live preview. Changes show right away and are saved on this computer only.</p>
@@ -702,7 +703,7 @@
       <div class="hk-list" id="hkList"></div>
       <button id="hkReset" style="margin-top:8px">Reset hotkeys</button>
     </div>
-    <p class="disclaimer"><b>Pro Remote 1.1</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
+    <p class="disclaimer"><b>Pro Remote 1.1.1</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
     <div class="actions">
       <button id="settingsCancel">Cancel</button>
       <button class="primary" id="settingsSave">Save</button>
@@ -753,7 +754,7 @@
 <div class="modal" id="pinModal">
   <div class="card">
     <strong>Enter PIN</strong>
-    <p class="muted small" style="margin:6px 0 0">This remote is protected. Ask your tech lead for the PIN.</p>
+    <p class="muted small" style="margin:6px 0 0">This remote is protected. Ask your tech lead for the PIN. Forgot it? It's shown in the Pro Remote window on the computer running the remote.</p>
     <label for="pinInput">PIN</label>
     <input id="pinInput" type="password" inputmode="numeric" autocomplete="off">
     <div class="actions"><button class="primary" id="pinSubmit">Unlock</button></div>
@@ -770,7 +771,7 @@
 
   let pin = '';
   try { pin = localStorage.getItem('proRemotePin') || ''; } catch (_) {}
-  const PAGE_VERSION = '1.1';   // must match APP_VERSION in server.js
+  const PAGE_VERSION = '1.1.1';   // must match APP_VERSION in server.js
   let live = {};               // latest state from server
   let pres = null;             // active presentation detail
   let presUuid = null;

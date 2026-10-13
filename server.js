@@ -18,7 +18,7 @@ const path = require('path');
 const os = require('os');
 
 // The demo keeps its own settings file so it never touches your real setup
-const APP_VERSION = '1.1';   // keep in step with PAGE_VERSION in public/index.html
+const APP_VERSION = '1.1.1';   // keep in step with PAGE_VERSION in public/index.html
 // Where settings and saved reports live: next to this file, or (for the Mac app) in the user's
 // Application Support folder, passed in as PRO_REMOTE_DATA
 const DATA_DIR = process.env.PRO_REMOTE_DATA || __dirname;
@@ -491,7 +491,11 @@ const server = http.createServer(async (req, res) => {
         const body = JSON.parse((await readBody(req)).toString() || '{}');
         if (body.proHost) config.proHost = String(body.proHost).trim();
         if (body.proPort) config.proPort = Number(body.proPort);
-        if (typeof body.pin === 'string') config.pin = body.pin.trim();
+        if (typeof body.pin === 'string' && body.pin.trim() !== (config.pin || '')) {
+          config.pin = body.pin.trim();
+          // shown in this window only (never in the log that goes with problem reports)
+          console.log(config.pin ? `\n  PIN changed in a remote's Settings. PIN: ${config.pin}\n` : '\n  PIN removed in a remote\'s Settings. PIN: off\n');
+        }
         saveConfig();
         state.connected = false;
         state.version = null;
@@ -568,6 +572,44 @@ function lanAddresses() {
   return out;
 }
 
+// ---------- PIN from this window ----------
+// The PIN is printed with console.log only, so it never lands in the log that goes with problem reports.
+function printPin() {
+  console.log(config.pin ? `  PIN: ${config.pin}` : '  PIN: off (anyone on this network can use the remote)');
+}
+const pinCommandsOn = !!process.stdin.isTTY;
+if (pinCommandsOn) {
+  const rl = require('readline').createInterface({ input: process.stdin, terminal: false });
+  rl.on('line', line => {
+    const [cmd, ...rest] = line.trim().split(/\s+/);
+    const arg = rest.join(' ');
+    if (!cmd) return;
+    if (/^pin$/i.test(cmd)) {
+      if (!arg) { printPin(); return; }
+      if (/^(off|none|remove)$/i.test(arg)) {
+        config.pin = ''; saveConfig();
+        console.log('\n  PIN removed. PIN: off (anyone on this network can use the remote)\n');
+        return;
+      }
+      if (/\s/.test(arg) || arg.length > 20) { console.log('  A PIN is one word with no spaces, up to 20 characters. Example:  pin 1234'); return; }
+      config.pin = arg; saveConfig();
+      console.log(`\n  PIN changed. PIN: ${config.pin}\n  Remotes that are open will ask for the new PIN.\n`);
+      return;
+    }
+    if (/^(help|\?)$/i.test(cmd)) {
+      console.log('\n  Commands (type, then press Enter):\n' +
+        '     pin           show the PIN\n' +
+        '     pin 1234      set the PIN to 1234\n' +
+        '     pin off       remove the PIN\n' +
+        '     help          show this list\n' +
+        '  Press Ctrl+C to stop the remote.\n');
+      return;
+    }
+    console.log(`  Unknown command "${cmd}". Type  help  for the list.`);
+  });
+  rl.on('SIGINT', () => process.exit(0));   // Ctrl+C still stops the remote
+}
+
 server.listen(config.remotePort, '0.0.0.0', () => {
   const addrs = lanAddresses();
   console.log(DEMO ? '\n  Pro Remote DEMO is running (pretend ProPresenter with sample songs, nothing real is controlled)\n'
@@ -576,7 +618,9 @@ server.listen(config.remotePort, '0.0.0.0', () => {
   console.log('  Open the remote from any computer on this network:');
   for (const a of addrs) console.log(`     http://${a}:${config.remotePort}`);
   console.log(`     http://localhost:${config.remotePort}  (this computer)`);
-  if (config.pin) console.log('  PIN protection is ON');
+  console.log('');
+  printPin();
+  if (pinCommandsOn) console.log('  To change it, type  pin 1234  and press Enter.  pin off  removes it.  help  lists commands.');
   console.log('\n  Press Ctrl+C to stop.\n');
   pollLoop();
   openBrowser(`http://localhost:${config.remotePort}`);

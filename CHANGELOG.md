@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 — 2026-10-13
+- The Pro Remote window shows the current PIN, and the PIN can be changed there: type `pin 1234`, `pin off` to remove it, or `pin` to show it (`help` lists the commands).
+- A PIN changed in Settings is shown in the window too. The PIN never goes into problem reports.
+- The PIN box and Settings say where to find a forgotten PIN.
+
 ## 1.1 — 2026-10-13
 - New app icon.
 - Mac: **Pro Remote.app** to keep in Applications / the Dock (settings in ~/Library/Application Support/Pro Remote).

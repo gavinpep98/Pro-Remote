@@ -1,4 +1,4 @@
-# Pro Remote 1.1 — control ProPresenter from another computer
+# Pro Remote 1.1.1 — control ProPresenter from another computer
 
 ![Pro Remote showing a playlist in Continuous view](docs/screenshot.png)
 
@@ -31,6 +31,14 @@ A browser-based control screen for ProPresenter 7, laid out like ProPresenter it
 
 Several computers can use the remote at once and stay in sync. An optional PIN keeps others on the network out.
 
+**PIN:** set it in ⚙︎ Settings, or in the Pro Remote window (the Terminal window on the computer running the remote), which always shows the current PIN. Type there and press Enter:
+- `pin` shows the PIN
+- `pin 1234` sets the PIN to 1234
+- `pin off` removes the PIN
+- `help` lists the commands
+
+Forgot the PIN? Look at that window, or type `pin` there. Remotes that are already open ask for the new PIN after it changes.
+
 ## Report a problem
 Click the **bug** button in the top bar (next to ⚙︎). The remote takes a screenshot of itself first, then asks what happened and what you were trying to do (name and reply email are optional). Along with it go the setup details (remote and ProPresenter versions, Mac/Windows, browser), what was on screen at the time, recent problems on the page, and the last 60 lines of the Terminal log. You can see everything before sending, and untick the screenshot. The PIN and stream keys are never included.
 - Every report is saved on the computer running the remote, in the **reports** folder (a readable .txt, the screenshot, and the details), then emailed.
@@ -47,7 +55,7 @@ Double-click **Start Demo (Mac).command** or **Start Demo (Windows).bat**. It ru
 1. **Turn on ProPresenter's network API.** ProPresenter → Settings → **Network** → check **Enable Network**. Note the port shown (often 1025, 50001, etc.). Requires ProPresenter 7.9 or newer.
 2. **Install Node.js** (free) on the ProPresenter computer from https://nodejs.org — choose the LTS version.
 3. **Install and start the remote** on the ProPresenter computer:
-   - **Mac:** open **Pro Remote 1.1.dmg** (from the project's Releases page) and drag **Pro Remote** onto **Applications** in the window that appears (and onto the Dock if you like), then open it. The first time, macOS says it can't verify the app: click Done, then System Settings → Privacy & Security → **Open Anyway**. Pro Remote opens a Terminal window that runs the remote. Its settings are kept in *~/Library/Application Support/Pro Remote*, so updating the app keeps them.
+   - **Mac:** open the **Pro Remote .dmg** disk image (from the project's Releases page) and drag **Pro Remote** onto **Applications** in the window that appears (and onto the Dock if you like), then open it. The first time, macOS says it can't verify the app: click Done, then System Settings → Privacy & Security → **Open Anyway**. Pro Remote opens a Terminal window that runs the remote. Its settings are kept in *~/Library/Application Support/Pro Remote*, so updating the app keeps them.
    - **Windows:** put this folder somewhere permanent (for example *Documents*), then double-click **Install Pro Remote (Windows).bat** once. It adds **Pro Remote** with its icon to the Start menu and the desktop (right-click it in Start → Pin to taskbar). Open it from there from now on.
    - You can still start it the old way with **Start Remote (Mac).command** / **Start Remote (Windows).bat**.
    The window shows an address like `http://192.168.1.50:4316`. Keep that window open while you use the remote.
