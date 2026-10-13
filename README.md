@@ -76,11 +76,6 @@ Browsers aren't allowed to talk to ProPresenter directly from a web page, so the
 - **Port 4316 already used:** edit `remotePort` in `config.json` (created after the first save) and restart.
 - Settings are saved in `config.json` next to `server.js`.
 
-## Making the Mac installer (for maintainers)
-On a Mac, open the **tools** folder and double-click **Build Mac Installer.command**. It builds the app and makes **dist/Pro Remote <version>.dmg** with the "drag Pro Remote to Applications" window. The first time, macOS may ask to let Terminal control Finder (that's what arranges the window); allow it. Attach the .dmg to a GitHub Release. Build it on a Mac: an app built elsewhere asks Apple Silicon Macs to install Rosetta.
-
-To have **Report a problem** email you from the Mac app, put your filled-in `report-settings.json` in *~/Library/Application Support/Pro Remote/* (it's used instead of the one inside the app).
-
 ## License
 Created by Gavin Peppers, with Crossroads Community Church (Athens, GA) as a contributor.
 
