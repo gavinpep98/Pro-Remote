@@ -51,7 +51,7 @@ The remote hides what a level can't use, and the helper program refuses it too.
 - **Managing people:** Admins use **⚙︎ Settings → Access**: add someone (leave the PIN blank to have one made up), change their level, show their PIN, give them a new PIN, sign them out everywhere, or remove them. A new PIN signs that person out on every computer.
 - **Wrong PINs:** after 5 wrong tries, that computer waits a minute.
 - **Don't want PINs at all?** Remove everyone (Admin last). With nobody added, anyone on the network can use the remote with no PIN.
-- **Updating from 1.1.1 or earlier:** the old shared PIN becomes a person called *Admin* with the same PIN. With no PIN before, the remote stays open to everyone until you add someone.
+- **Updating from an earlier version:** the old shared PIN becomes a person called *Admin* with the same PIN. With no PIN before, the remote stays open to everyone until you add someone.
 
 ### Commands in the Pro Remote window
 The Pro Remote window (the Terminal window on the computer running the remote) takes commands. Type one and press Enter:
