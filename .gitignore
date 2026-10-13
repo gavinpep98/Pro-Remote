@@ -1,0 +1,10 @@
+# Settings saved on each computer (ProPresenter address, PIN)
+config.json
+demo/demo-config.json
+# Problem reports saved by the helper
+reports/
+node_modules/
+.DS_Store
+Thumbs.db
+# Built apps
+dist/

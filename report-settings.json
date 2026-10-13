@@ -1,0 +1,6 @@
+{
+  "_help": "Where 'Report a problem' sends reports. service: formsubmit (free, includes the screenshot) or web3forms (needs accessKey; no screenshot on the free plan). Leave sendTo empty to only save reports in the reports folder.",
+  "service": "formsubmit",
+  "sendTo": "gavinpep@gmail.com",
+  "accessKey": ""
+}

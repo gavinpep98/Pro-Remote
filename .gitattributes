@@ -1,0 +1,6 @@
+# Keep Windows launchers with Windows line endings and Mac launchers with Mac ones
+*.bat      text eol=crlf
+*.command  text eol=lf
+*.js       text eol=lf
+*.html     text eol=lf
+*.md       text eol=lf

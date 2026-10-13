@@ -1,0 +1,27 @@
+Pro Remote — a browser remote for ProPresenter
+Copyright (C) 2026 Gavin Peppers
+Contributors: Crossroads Community Church, Athens, GA
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program (LICENSE.txt).  If not, see <https://www.gnu.org/licenses/>.
+
+Pro Remote is an independent project. It is not made, supported or endorsed by
+Renewed Vision, and is not affiliated with them. ProPresenter is a trademark of
+Renewed Vision.
+
+---------------------------------------------------------------------------
+Third-party code included in this project
+
+public/vendor/html-to-image.js — html-to-image by bubkoo and contributors,
+MIT License, https://github.com/bubkoo/html-to-image (compatible with the GPL;
+its own notice is kept at the top of the file).
