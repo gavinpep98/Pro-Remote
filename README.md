@@ -1,6 +1,6 @@
 # Slide Desk 1.2.1 — control ProPresenter from another computer
 
-![Slide Desk showing a playlist in Continuous view](docs/screenshot.png)
+![Slide Desk showing a playlist in Continuous view](docs/slide-desk.png)
 
 **Download:** click the green **Code** button above → **Download ZIP**, unzip it, and follow *Setup* below. Or try it first with the **Start Demo** files (no ProPresenter needed).
 
