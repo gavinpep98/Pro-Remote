@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 — 2026-10-14
+- **Pro Remote is now Slide Desk.** Renamed so it isn't confused with Renewed Vision's own ProPresenter Remote app. Nothing else changed.
+- Mac: the app is now **Slide Desk.app**, and the first time it opens it moves your settings, people and PINs over from Pro Remote. Drag the old Pro Remote app to the Trash.
+- Windows: **Install Slide Desk (Windows).bat** removes the old Pro Remote shortcuts and adds Slide Desk ones. The start files are now **Start Slide Desk (Mac).command** and **Start Slide Desk (Windows).bat**.
+- Start-up settings are now named SLIDE_DESK_* (the old PRO_REMOTE_* names still work).
+
 ## 1.2 — 2026-10-13
 - **Personal PINs and access levels.** Each person signs in with their own PIN and has a level: Viewer (watch only), Slides only (slides and Clear), Operator (runs the service) or Admin (everything, including Looks editing, screens on/off, capture, the connection and people). The remote hides what a level can't use, and the helper refuses it.
 - A remote not used for 3 days asks for the PIN again.

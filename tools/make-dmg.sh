@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds "Pro Remote <version>.dmg" — the disk image with the "drag Pro Remote to Applications" window.
+# Builds "Slide Desk <version>.dmg" — the disk image with the "drag Slide Desk to Applications" window.
 # Must run on a Mac (uses macOS's own hdiutil and Finder). Output goes to the dist folder.
 set -e
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,9 +7,9 @@ VER=$(grep -o "APP_VERSION = '[^']*'" "$SRC/server.js" | cut -d"'" -f2)
 WORK="$(mktemp -d)"
 STAGE="$WORK/stage"
 mkdir -p "$STAGE/.background" "$SRC/dist"
-OUT="$SRC/dist/Pro Remote $VER.dmg"
+OUT="$SRC/dist/Slide Desk $VER.dmg"
 
-echo "Building Pro Remote $VER…"
+echo "Building Slide Desk $VER…"
 bash "$SRC/tools/make-mac-app.sh" "$STAGE" >/dev/null
 ln -s /Applications "$STAGE/Applications"
 
@@ -22,7 +22,7 @@ else
 fi
 
 # make a writable image, lay out its window, then compress it
-hdiutil create -volname "Pro Remote" -srcfolder "$STAGE" -fs HFS+ -format UDRW -ov "$WORK/rw.dmg" >/dev/null
+hdiutil create -volname "Slide Desk" -srcfolder "$STAGE" -fs HFS+ -format UDRW -ov "$WORK/rw.dmg" >/dev/null
 ATTACH=$(hdiutil attach -readwrite -noverify -noautoopen "$WORK/rw.dmg")
 DEV=$(echo "$ATTACH" | grep -E '^/dev/' | head -1 | awk '{print $1}')
 MNT=$(echo "$ATTACH" | grep -E 'Apple_HFS' | awk -F'\t' '{print $NF}' | sed 's/^ *//')
@@ -44,7 +44,7 @@ tell application "Finder"
     set icon size of opts to 128
     set text size of opts to 13
     set background picture of opts to file ".background:$BG"
-    set position of item "Pro Remote.app" of container window to {165, 200}
+    set position of item "Slide Desk.app" of container window to {165, 200}
     set position of item "Applications" of container window to {495, 200}
     update without registering applications
     delay 2

@@ -1,12 +1,12 @@
 #!/bin/bash
-# Builds "Pro Remote.app" for Mac from this folder.
+# Builds "Slide Desk.app" for Mac from this folder.
 # Usage:  tools/make-mac-app.sh [output-folder]      (default: dist)
 # The app carries its own copy of the remote; settings and saved reports go to
-# ~/Library/Application Support/Pro Remote, so updating the app keeps them.
+# ~/Library/Application Support/Slide Desk, so updating the app keeps them.
 set -e
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${1:-$SRC/dist}"
-APP="$OUT/Pro Remote.app"
+APP="$OUT/Slide Desk.app"
 VER=$(grep -o "APP_VERSION = '[^']*'" "$SRC/server.js" | cut -d"'" -f2)
 rm -rf "$APP"
 if command -v osacompile >/dev/null 2>&1; then
@@ -18,7 +18,7 @@ if command -v osacompile >/dev/null 2>&1; then
   pb() { /usr/libexec/PlistBuddy -c "Set :$1 '$2'" "$P" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string '$2'" "$P"; }
   # newer macOS puts the default script icon in Assets.car, which would win over ours
   rm -f "$APP/Contents/Resources/Assets.car"; /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$P" 2>/dev/null || true
-  pb CFBundleName "Pro Remote"; pb CFBundleDisplayName "Pro Remote"; pb CFBundleIdentifier "io.github.proremote"
+  pb CFBundleName "Slide Desk"; pb CFBundleDisplayName "Slide Desk"; pb CFBundleIdentifier "io.github.slidedesk"
   pb CFBundleShortVersionString "$VER"; pb CFBundleVersion "$VER"
   pb NSHumanReadableCopyright "Copyright (C) 2026 Gavin Peppers. GNU GPL v3. Not affiliated with Renewed Vision."
   mkdir -p "$APP/Contents/Resources/remote"
@@ -31,41 +31,44 @@ else
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Pro Remote</string>
-  <key>CFBundleDisplayName</key><string>Pro Remote</string>
-  <key>CFBundleIdentifier</key><string>io.github.proremote</string>
+  <key>CFBundleName</key><string>Slide Desk</string>
+  <key>CFBundleDisplayName</key><string>Slide Desk</string>
+  <key>CFBundleIdentifier</key><string>io.github.slidedesk</string>
   <key>CFBundleVersion</key><string>$VER</string>
   <key>CFBundleShortVersionString</key><string>$VER</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleExecutable</key><string>Pro Remote</string>
+  <key>CFBundleExecutable</key><string>Slide Desk</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>LSMinimumSystemVersion</key><string>10.13</string>
   <key>LSArchitecturePriority</key><array><string>arm64</string><string>x86_64</string></array>
   <key>NSHumanReadableCopyright</key><string>Copyright (C) 2026 Gavin Peppers. GNU GPL v3. Not affiliated with Renewed Vision.</string>
 </dict></plist>
 PLIST
-  cat > "$APP/Contents/MacOS/Pro Remote" <<'SH'
+  cat > "$APP/Contents/MacOS/Slide Desk" <<'SH'
 #!/bin/bash
 RES="$(cd "$(dirname "$0")/../Resources" && pwd)"
 open -a Terminal "$RES/launch.command"
 SH
-  chmod +x "$APP/Contents/MacOS/Pro Remote"
+  chmod +x "$APP/Contents/MacOS/Slide Desk"
 fi
 cp -R "$SRC/server.js" "$SRC/public" "$SRC/report-settings.json" "$SRC/LICENSE.txt" "$SRC/COPYRIGHT.txt" "$APP/Contents/Resources/remote/"
 
 cat > "$APP/Contents/Resources/launch.command" <<'SH'
 #!/bin/bash
-# Runs Pro Remote. Settings and reports: ~/Library/Application Support/Pro Remote
-printf '\033]0;Pro Remote\007'
+# Runs Slide Desk. Settings and reports: ~/Library/Application Support/Slide Desk
+printf '\033]0;Slide Desk\007'
 RES="$(cd "$(dirname "$0")" && pwd)"
-DATA="$HOME/Library/Application Support/Pro Remote"
+DATA="$HOME/Library/Application Support/Slide Desk"
+OLD="$HOME/Library/Application Support/Pro Remote"
+# Slide Desk used to be called Pro Remote: bring its settings, people and reports along the first time
+if [ ! -d "$DATA" ] && [ -d "$OLD" ]; then mv "$OLD" "$DATA"; fi
 mkdir -p "$DATA"
-export PRO_REMOTE_DATA="$DATA"
+export SLIDE_DESK_DATA="$DATA"
 PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.volta/bin:$PATH"
 [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1
 if ! command -v node >/dev/null 2>&1; then
   echo ""
-  echo "  Pro Remote needs Node.js (free). Opening nodejs.org — install the LTS version, then open Pro Remote again."
+  echo "  Slide Desk needs Node.js (free). Opening nodejs.org — install the LTS version, then open Slide Desk again."
   open "https://nodejs.org"
   read -p "  Press Enter to close..."; exit 1
 fi
@@ -73,7 +76,7 @@ PORT=$(grep -o '"remotePort": *[0-9]*' "$DATA/config.json" 2>/dev/null | grep -o
 PORT=${PORT:-4316}
 if curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/auth"; then
   echo ""
-  echo "  Pro Remote is already running (in another Terminal window)."
+  echo "  Slide Desk is already running (in another Terminal window)."
   echo "  Open http://localhost:$PORT in a browser, or close that window first to restart it."
   echo ""
   read -p "  Press Enter to close..."; exit 0
@@ -81,7 +84,7 @@ fi
 cd "$RES/remote"
 node server.js
 echo ""
-read -p "  Pro Remote stopped. Press Enter to close..."
+read -p "  Slide Desk stopped. Press Enter to close..."
 SH
 chmod +x "$APP/Contents/Resources/launch.command"
 # re-seal the app after adding files (ad-hoc signature; Macs still ask once to "Open Anyway")

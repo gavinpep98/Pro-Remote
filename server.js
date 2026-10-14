@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pro Remote · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
+// Slide Desk · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
 // SPDX-License-Identifier: GPL-3.0-or-later  (see LICENSE.txt and COPYRIGHT.txt)
 /*
  * ProPresenter Network Remote
@@ -18,12 +18,14 @@ const path = require('path');
 const os = require('os');
 
 // The demo keeps its own settings file so it never touches your real setup
-const APP_VERSION = '1.2';   // keep in step with PAGE_VERSION in public/index.html
+const APP_VERSION = '1.2.1';   // keep in step with PAGE_VERSION in public/index.html
 // Where settings and saved reports live: next to this file, or (for the Mac app) in the user's
-// Application Support folder, passed in as PRO_REMOTE_DATA
-const DATA_DIR = process.env.PRO_REMOTE_DATA || __dirname;
-const CONFIG_FILE = process.env.PRO_REMOTE_CONFIG || path.join(DATA_DIR, 'config.json');
-const DEMO = !!process.env.PRO_REMOTE_DEMO;
+// Application Support folder, passed in as SLIDE_DESK_DATA
+// (Slide Desk used to be called Pro Remote: the old PRO_REMOTE_* names still work)
+const env = name => process.env['SLIDE_DESK_' + name] ?? process.env['PRO_REMOTE_' + name];
+const DATA_DIR = env('DATA') || __dirname;
+const CONFIG_FILE = env('CONFIG') || path.join(DATA_DIR, 'config.json');
+const DEMO = !!env('DEMO');
 const DEFAULTS = {
   proHost: '127.0.0.1', // where ProPresenter is running
   proPort: 1025,        // ProPresenter > Settings > Network > Port
@@ -57,7 +59,7 @@ if (config.pin && !config.users.length) {
   config.pinMoved = true;
 }
 if ('pin' in config) { delete config.pin; saveConfig(); }
-// A new install starts protected: an Admin with a made-up PIN, shown in the Pro Remote window
+// A new install starts protected: an Admin with a made-up PIN, shown in the Slide Desk window
 // until it's changed. (Not a fixed default PIN: that would be printed for anyone to read.)
 if (firstRun && !DEMO && !config.users.length) {
   const pin = String(require('crypto').randomInt(100000, 1000000));
@@ -341,12 +343,12 @@ const reports = (() => {
   function asText(r) {
     const p = r.page || {}, live = p.live || {};
     const lines = [
-      `${r.demo ? '[DEMO] ' : ''}Pro Remote problem report`, `When: ${r.when}`, '',
+      `${r.demo ? '[DEMO] ' : ''}Slide Desk problem report`, `When: ${r.when}`, '',
       'WHAT HAPPENED', r.what || '(not filled in)', '',
       'WHAT THEY WERE TRYING TO DO', r.trying || '(not filled in)', '',
       `From: ${r.name || '(no name)'}${r.email ? ' <' + r.email + '>' : ''}`, '',
       'SETUP',
-      `Pro Remote ${r.remote.appVersion}`, `Helper computer: ${r.remote.helperComputer}`,
+      `Slide Desk ${r.remote.appVersion}`, `Helper computer: ${r.remote.helperComputer}`,
       r.remote.signedInAs ? `Signed in as: ${r.remote.signedInAs}` : null,
       `ProPresenter: ${r.remote.proPresenter}`, `Connected: ${r.remote.connected} · Updates: ${r.remote.liveUpdates}`,
       r.remote.helperError ? `Helper error: ${r.remote.helperError}` : '',
@@ -365,7 +367,7 @@ const reports = (() => {
     const r = JSON.parse(fs.readFileSync(path.join(OUTBOX, id + '.json'), 'utf8'));
     const shotFile = path.join(OUTBOX, id + '.jpg');
     const shot = fs.existsSync(shotFile) ? fs.readFileSync(shotFile) : null;
-    const subject = `${r.demo ? '[DEMO] ' : ''}Pro Remote problem: ${(r.what || 'no description').replace(/\s+/g, ' ').slice(0, 70)}`;
+    const subject = `${r.demo ? '[DEMO] ' : ''}Slide Desk problem: ${(r.what || 'no description').replace(/\s+/g, ' ').slice(0, 70)}`;
     const text = asText(r);
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 30000);
     try {
@@ -378,6 +380,7 @@ const reports = (() => {
         fd.append('Report', text);
         if (shot) fd.append('attachment', new Blob([shot], { type: 'image/jpeg' }), `screenshot-${id}.jpg`);
         res = await fetch(s.endpoint || `https://formsubmit.co/${encodeURIComponent(s.sendTo)}`, { method: 'POST', body: fd, signal: ctrl.signal, redirect: 'manual',
+          // (kept from when Slide Desk was called Pro Remote: the email service is set up for this address)
           headers: { Referer: 'http://pro-remote.local/', Origin: 'http://pro-remote.local' } });
         return res.status < 400;
       }
@@ -385,7 +388,7 @@ const reports = (() => {
         // Web3Forms free plan can't attach files: the screenshot stays in the reports folder on this computer
         res = await fetch('https://api.web3forms.com/submit', { method: 'POST', signal: ctrl.signal,
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ access_key: s.accessKey, subject, from_name: 'Pro Remote', replyto: r.email || undefined,
+          body: JSON.stringify({ access_key: s.accessKey, subject, from_name: 'Slide Desk', replyto: r.email || undefined,
             message: text + (shot ? `\n\n(Screenshot saved on the helper computer: reports/sent/${id}.jpg)` : '') }) });
         return res.ok;
       }
@@ -469,8 +472,8 @@ function readBody(req, limit = 1e6) {
 const LEVELS = ['viewer', 'slides', 'operator', 'admin'];
 const LEVEL_NAMES = { viewer: 'Viewer', slides: 'Slides only', operator: 'Operator', admin: 'Admin' };
 const lv = level => Math.max(0, LEVELS.indexOf(level));
-const SIGN_OUT_AFTER = Number(process.env.PRO_REMOTE_IDLE_MS) || 3 * 24 * 3600e3;   // 3 days without use
-const LOCAL_ADMIN = !process.env.PRO_REMOTE_NO_LOCAL_ADMIN;                         // (switched off only in tests)
+const SIGN_OUT_AFTER = Number(env('IDLE_MS')) || 3 * 24 * 3600e3;   // 3 days without use
+const LOCAL_ADMIN = !env('NO_LOCAL_ADMIN');                              // (switched off only in tests)
 const SESSIONS_FILE = CONFIG_FILE.replace(/\.json$/i, '') + '-sessions.json';
 
 let sessions = {};   // token -> { name, lastActive }
@@ -545,7 +548,7 @@ function needLevel(method, t) {
 // Wrong PINs: after 5 from one computer, it waits a minute
 const failedSignIns = new Map();   // ip -> { n, until }
 
-// Adding and changing people (from the Pro Remote window, or by an Admin in Settings)
+// Adding and changing people (from the Slide Desk window, or by an Admin in Settings)
 function changeUsers(op, a, by) {
   const users = config.users;
   const name = String(a.name || '').trim().replace(/\s+/g, ' ');
@@ -1011,8 +1014,8 @@ if (commandsOn) {
 
 server.listen(config.remotePort, '0.0.0.0', () => {
   const addrs = lanAddresses();
-  console.log(DEMO ? '\n  Pro Remote DEMO is running (pretend ProPresenter with sample songs, nothing real is controlled)\n'
-                   : `\n  Pro Remote ${APP_VERSION} is running\n`);
+  console.log(DEMO ? '\n  Slide Desk DEMO is running (pretend ProPresenter with sample songs, nothing real is controlled)\n'
+                   : `\n  Slide Desk ${APP_VERSION} is running\n`);
   console.log(`  Talking to ProPresenter at ${config.proHost}:${config.proPort}`);
   console.log('  Open the remote from any computer on this network:');
   for (const a of addrs) console.log(`     http://${a}:${config.remotePort}`);

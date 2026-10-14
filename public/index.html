@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Pro Remote · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA · SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Slide Desk · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA · SPDX-License-Identifier: GPL-3.0-or-later -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -23,11 +23,11 @@
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pro Remote">
+<meta name="apple-mobile-web-app-title" content="Slide Desk">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Pro Remote</title>
+<title>Slide Desk</title>
 <style>
   :root {
     --bg: #0e0f12; --panel: #17191e; --panel-2: #1f2229; --line: #2a2e37;
@@ -502,7 +502,7 @@
 <div id="staleBar" class="stale-bar" hidden>The remote has been updated. <button onclick="location.reload()">Refresh to get the new version</button></div>
 <header>
   <span class="dot" id="dot"></span>
-  <h1>Pro Remote</h1>
+  <h1>Slide Desk</h1>
   <span id="demoTag" class="demo-tag" hidden title="This is a demo: a pretend ProPresenter with sample songs. Nothing real is being controlled.">DEMO</span>
   <div class="look-wrap">
     <button id="lookBtn" class="look-btn" title="Looks" aria-haspopup="true" aria-expanded="false">
@@ -701,7 +701,7 @@
       <div class="rep-fallback" id="repFallback" hidden>
         <button id="repCopy">Copy report</button>
         <a class="btn-like" id="repMail" hidden>Open in email app</a>
-        <a class="btn-like" id="repShotDl" download="pro-remote-screenshot.jpg" hidden>Save screenshot</a>
+        <a class="btn-like" id="repShotDl" download="slide-desk-screenshot.jpg" hidden>Save screenshot</a>
       </div>
       <div class="actions"><button class="primary" id="repClose">Done</button></div>
     </div>
@@ -769,7 +769,7 @@
       <div class="hk-list" id="hkList"></div>
       <button id="hkReset" style="margin-top:8px">Reset hotkeys</button>
       </details>
-    <p class="disclaimer"><b>Pro Remote 1.2</b> · Pro Remote is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Pro Remote, use the bug button, not Renewed Vision support.</p>
+    <p class="disclaimer"><b>Slide Desk 1.2.1</b> · Slide Desk is an independent, open-source project (GNU GPL v3). It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. For help with Slide Desk, use the bug button, not Renewed Vision support.</p>
     <div class="actions">
       <button id="settingsCancel">Cancel</button>
       <button class="primary" id="settingsSave">Save</button>
@@ -822,12 +822,12 @@
     <svg class="signin-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="signinBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa45c"/><stop offset="1" stop-color="#ec5f16"/></linearGradient></defs><rect x="100" y="100" width="824" height="824" rx="185" fill="url(#signinBg)"/><rect x="290" y="226" width="460" height="290" rx="34" fill="#1a1205" opacity=".22"/>
 <rect x="232" y="288" width="460" height="290" rx="34" fill="#1b1d23"/>
 <rect x="282" y="364" width="280" height="30" rx="15" fill="#fff"/><rect x="282" y="424" width="200" height="30" rx="15" fill="#fff" opacity=".55"/><circle cx="632" cy="662" r="132" fill="#fff"/><path d="M598 602 L678 662 L598 722 Z" fill="#ec5f16" stroke="#ec5f16" stroke-width="22" stroke-linejoin="round"/><path d="M777.8 548.1 A185 185 0 0 1 777.8 775.9" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" opacity="1"/><path d="M825.1 511.2 A245 245 0 0 1 825.1 812.8" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" opacity="0.55"/></svg>
-    <h2 id="signinTitle">Pro Remote</h2>
+    <h2 id="signinTitle">Slide Desk</h2>
     <p class="signin-why" id="pinWhy">Type your PIN to sign in.</p>
     <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" aria-label="Your PIN" placeholder="PIN">
     <div class="small" id="pinErr"></div>
     <button class="primary" id="pinSubmit">Sign in</button>
-    <p class="muted small signin-help">Forgot your PIN or don't have one? Ask your tech lead. Everyone's PIN is listed in the Pro Remote window on the computer running the remote (type <b>users</b> there).</p>
+    <p class="muted small signin-help">Forgot your PIN or don't have one? Ask your tech lead. Everyone's PIN is listed in the Slide Desk window on the computer running the remote (type <b>users</b> there).</p>
   </div>
 </div>
 
@@ -861,7 +861,7 @@
     if (/trigger|\/clear|\/(next|previous)$|\/operation|\/(start|stop|reset)$|\/stage\/screen\/[^/]+\/layout\/[^/?]+|\/transport\/[^/]+\/(play|pause|skip_forward|skip_backward|go_to_end)/.test(t)) return 'operator';
     return 'viewer';
   }
-  const PAGE_VERSION = '1.2';   // must match APP_VERSION in server.js
+  const PAGE_VERSION = '1.2.1';   // must match APP_VERSION in server.js
   let live = {};               // latest state from server
   let pres = null;             // active presentation detail
   let presUuid = null;
@@ -3114,7 +3114,7 @@
     };
     const mail = $('#repMail');
     mail.hidden = !fallback.sendTo;
-    if (fallback.sendTo) mail.href = `mailto:${fallback.sendTo}?subject=${encodeURIComponent('Pro Remote problem report')}&body=${encodeURIComponent(fallback.text.slice(0, 1800))}`;
+    if (fallback.sendTo) mail.href = `mailto:${fallback.sendTo}?subject=${encodeURIComponent('Slide Desk problem report')}&body=${encodeURIComponent(fallback.text.slice(0, 1800))}`;
     const dl = $('#repShotDl');
     dl.hidden = !fallback.shot; if (fallback.shot) dl.href = fallback.shot;
   }
@@ -3367,7 +3367,7 @@
 
   // ---------- live updates ----------
   let es;
-  // This remote checks in every 15 s so the Pro Remote window knows it's still open
+  // This remote checks in every 15 s so the Slide Desk window knows it's still open
   // (a computer that goes to sleep or drops off the network is noticed within a minute).
   const cid = Math.random().toString(36).slice(2, 10);
   // Pressing anything counts as using the remote (after 3 days without use it asks for the PIN again)

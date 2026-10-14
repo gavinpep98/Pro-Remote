@@ -1,6 +1,6 @@
-# Pro Remote 1.2 — control ProPresenter from another computer
+# Slide Desk 1.2.1 — control ProPresenter from another computer
 
-![Pro Remote showing a playlist in Continuous view](docs/screenshot.png)
+![Slide Desk showing a playlist in Continuous view](docs/screenshot.png)
 
 **Download:** click the green **Code** button above → **Download ZIP**, unzip it, and follow *Setup* below. Or try it first with the **Start Demo** files (no ProPresenter needed).
 
@@ -43,7 +43,7 @@ Each person signs in with **their own PIN**, and each person has a **level**:
 
 The remote hides what a level can't use, and the helper program refuses it too.
 
-- **First start:** a new install makes an **Admin** with a made-up PIN and shows it in the Pro Remote window every time it starts, until you change it. Sign in with it, then add your team.
+- **First start:** a new install makes an **Admin** with a made-up PIN and shows it in the Slide Desk window every time it starts, until you change it. Sign in with it, then add your team.
 - **Signing in:** a computer asks for a PIN once and remembers it. A remote that isn't used for **3 days** asks again (opening it or pressing anything counts as use; just leaving it open doesn't). Settings → Access shows who's signed in, with **Sign out**.
 - **One computer at a time:** each person (except Admins) can be signed in on one computer at a time. A PIN never signs anyone out, so nobody can take over someone's remote with their PIN. If that person is already signed in somewhere, the PIN is refused ("This PIN is already in use on another computer"). It works again once they sign out there, an Admin signs them out (Settings → Access → People), or 3 days pass without use. Admins can be signed in on as many computers as they like.
 - **The computer running the remote never needs a PIN** (it's always Admin), so you can't lock yourself out.
@@ -53,8 +53,8 @@ The remote hides what a level can't use, and the helper program refuses it too.
 - **Don't want PINs at all?** Remove everyone (Admin last). With nobody added, anyone on the network can use the remote with no PIN.
 - **Updating from an earlier version:** the old shared PIN becomes a person called *Admin* with the same PIN. With no PIN before, the remote stays open to everyone until you add someone.
 
-### Commands in the Pro Remote window
-The Pro Remote window (the Terminal window on the computer running the remote) takes commands. Type one and press Enter:
+### Commands in the Slide Desk window
+The Slide Desk window (the Terminal window on the computer running the remote) takes commands. Type one and press Enter:
 - `users` lists everyone, their level and PIN
 - `add Sarah operator` adds Sarah and makes up a PIN for her (`add Sarah 2580 operator` to choose it). Levels: `viewer`, `slides`, `operator`, `admin`
 - `pin Sarah 2580` gives Sarah a new PIN
@@ -64,9 +64,9 @@ The Pro Remote window (the Terminal window on the computer running the remote) t
 - `remotes` (or `who`, or `connections`) shows how many remotes are open, who's on them and which computers they're on. The window also notes each one as it opens or closes; one that drops off (like a computer going to sleep) shows as "stopped responding" within a minute
 - `help` lists the commands
 
-**Forgot your PIN?** Ask whoever is at the ProPresenter computer to type `users` in the Pro Remote window.
+**Forgot your PIN?** Ask whoever is at the ProPresenter computer to type `users` in the Slide Desk window.
 
-The Pro Remote window also logs who did what ("Sarah  GET /v1/trigger/next"), and problem reports say who sent them. PINs never go into problem reports. This keeps volunteers in their lane on your local network. It isn't bank-level security: the remote uses plain http, so someone determined on the same network could watch a PIN go by.
+The Slide Desk window also logs who did what ("Sarah  GET /v1/trigger/next"), and problem reports say who sent them. PINs never go into problem reports. This keeps volunteers in their lane on your local network. It isn't bank-level security: the remote uses plain http, so someone determined on the same network could watch a PIN go by.
 
 ## Report a problem
 Click the **bug** button in the top bar (next to ⚙︎). The remote takes a screenshot of itself first, then asks what happened and what you were trying to do (name and reply email are optional). Along with it go the setup details (remote and ProPresenter versions, Mac/Windows, browser), what was on screen at the time, recent problems on the page, and the last 60 lines of the Terminal log. You can see everything before sending, and untick the screenshot. The PIN and stream keys are never included.
@@ -79,21 +79,28 @@ Click the **bug** button in the top bar (next to ⚙︎). The remote takes a scr
 ## Try it without ProPresenter (demo)
 Double-click **Start Demo (Mac).command** or **Start Demo (Windows).bat**. It runs the real remote against a pretend ProPresenter with sample songs, playlists, props, Looks and media, and opens it in your browser at `http://localhost:8090`. Nothing real is controlled, a yellow **DEMO** tag shows in the top bar, and the demo keeps its own settings (your real setup isn't touched). Needs Node.js, like the real remote. Close the window to stop it.
 
+## Updating from Pro Remote
+Slide Desk used to be called **Pro Remote**. It was renamed so it isn't confused with Renewed Vision's own *ProPresenter Remote* app. Nothing else changed.
+- **Mac:** install Slide Desk from the new .dmg, then drag the old **Pro Remote** app from Applications to the Trash. The first time Slide Desk opens, it moves your settings, people and PINs over from Pro Remote automatically.
+- **Windows:** replace the folder with the new one, then double-click **Install Slide Desk (Windows).bat** once. It removes the old Pro Remote shortcuts and adds Slide Desk ones. If your settings were in the old folder, copy its `config.json` (and `config-sessions.json`) into the new folder first.
+- Team computers that saved the remote as an app: remove the old *Pro Remote* one and add it again (it'll be called Slide Desk).
+- The address and port (4316) don't change, so bookmarks keep working.
+
 ## Setup (one time, about 5 minutes)
 
 1. **Turn on ProPresenter's network API.** ProPresenter → Settings → **Network** → check **Enable Network**. Note the port shown (often 1025, 50001, etc.). Requires ProPresenter 7.9 or newer.
 2. **Install Node.js** (free) on the ProPresenter computer from https://nodejs.org — choose the LTS version.
 3. **Install and start the remote** on the ProPresenter computer:
-   - **Mac:** open the **Pro Remote .dmg** disk image (from the project's Releases page) and drag **Pro Remote** onto **Applications** in the window that appears (and onto the Dock if you like), then open it. The first time, macOS says it can't verify the app: click Done, then System Settings → Privacy & Security → **Open Anyway**. Pro Remote opens a Terminal window that runs the remote. Its settings are kept in *~/Library/Application Support/Pro Remote*, so updating the app keeps them.
-   - **Windows:** put this folder somewhere permanent (for example *Documents*), then double-click **Install Pro Remote (Windows).bat** once. It adds **Pro Remote** with its icon to the Start menu and the desktop (right-click it in Start → Pin to taskbar). Open it from there from now on.
-   - You can still start it the old way with **Start Remote (Mac).command** / **Start Remote (Windows).bat**.
+   - **Mac:** open the **Slide Desk .dmg** disk image (from the project's Releases page) and drag **Slide Desk** onto **Applications** in the window that appears (and onto the Dock if you like), then open it. The first time, macOS says it can't verify the app: click Done, then System Settings → Privacy & Security → **Open Anyway**. Slide Desk opens a Terminal window that runs the remote. Its settings are kept in *~/Library/Application Support/Slide Desk*, so updating the app keeps them.
+   - **Windows:** put this folder somewhere permanent (for example *Documents*), then double-click **Install Slide Desk (Windows).bat** once. It adds **Slide Desk** with its icon to the Start menu and the desktop (right-click it in Start → Pin to taskbar). Open it from there from now on.
+   - You can still start it the old way with **Start Slide Desk (Mac).command** / **Start Slide Desk (Windows).bat**.
    The window shows an address like `http://192.168.1.50:4316`. Keep that window open while you use the remote.
 4. **On the computer you'll control from**, open that address in Chrome, Edge or Safari (same network as ProPresenter). Press F11 (Windows) or Ctrl+Cmd+F (Mac) for full screen.
 5. Tap **⚙︎** and enter ProPresenter's port from step 1 (leave the IP as `127.0.0.1` if the remote runs on the ProPresenter computer). The dot turns green when connected.
-6. **Sign in and add your team:** the Pro Remote window shows the Admin PIN. Sign in with it on your control computer, then open **⚙︎ Settings → Access** to change your PIN and add people. (Skip this if you don't want PINs; see *Who can use the remote*.)
+6. **Sign in and add your team:** the Slide Desk window shows the Admin PIN. Sign in with it on your control computer, then open **⚙︎ Settings → Access** to change your PIN and add people. (Skip this if you don't want PINs; see *Who can use the remote*.)
 
 ### Add the remote to your team's computers
-The computers you control from don't install anything; they just open the address. To give them a **Pro Remote** icon that opens in its own window:
+The computers you control from don't install anything; they just open the address. To give them a **Slide Desk** icon that opens in its own window:
 - **Safari (Mac):** open the remote, then **File → Add to Dock**.
 - **Chrome / Edge (Mac or Windows):** open the remote, then **⋮ → Cast, save and share → Create shortcut…**, tick **Open as window**, and click Create. It appears in Applications / the Start menu.
 
@@ -103,7 +110,7 @@ ProPresenter doesn't share a Planning Center plan's item list with other apps. O
 ## How it fits together
 
 ```
- Control computer's browser ──►  Pro Remote (this folder, port 4316)  ──►  ProPresenter API
+ Control computer's browser ──►  Slide Desk (this folder, port 4316)  ──►  ProPresenter API
 ```
 Browsers aren't allowed to talk to ProPresenter directly from a web page, so the small helper in this folder (`server.js`) serves the HTML remote and passes its commands along. It has no dependencies and can run on the ProPresenter machine or any other computer on the network (just point ⚙︎ at ProPresenter's IP).
 
@@ -117,7 +124,7 @@ Browsers aren't allowed to talk to ProPresenter directly from a web page, so the
 ## License
 Created by Gavin Peppers, with Crossroads Community Church (Athens, GA) as a contributor.
 
-Pro Remote is free, open-source software under the **GNU General Public License v3** (or any later version); see `LICENSE.txt` and `COPYRIGHT.txt`. In short: anyone may use, copy, change and share it, and may even charge for copies, but anyone who shares it, changed or not, must share the source code under the same GPL license and keep the copyright notices. No one can turn it into a closed, proprietary product. It comes with no warranty.
+Slide Desk is free, open-source software under the **GNU General Public License v3** (or any later version); see `LICENSE.txt` and `COPYRIGHT.txt`. In short: anyone may use, copy, change and share it, and may even charge for copies, but anyone who shares it, changed or not, must share the source code under the same GPL license and keep the copyright notices. No one can turn it into a closed, proprietary product. It comes with no warranty.
 
 ## Disclaimer
-Pro Remote is an independent, open-source project. It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. Please don't contact Renewed Vision support about Pro Remote.
+Slide Desk is an independent, open-source project. It is not made, supported or endorsed by Renewed Vision, and is not affiliated with or in partnership with them. ProPresenter is a trademark of Renewed Vision. Please don't contact Renewed Vision support about Slide Desk.

@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest something for Pro Remote
+about: Suggest something for Slide Desk
 labels: enhancement
 ---
 

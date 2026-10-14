@@ -1,7 +1,7 @@
-// Pro Remote · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
+// Slide Desk · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
 // SPDX-License-Identifier: GPL-3.0-or-later  (see LICENSE.txt and COPYRIGHT.txt)
 /*
- * Pretend ProPresenter used by the Pro Remote demos (sample songs, playlists, props, Looks, media...).
+ * Pretend ProPresenter used by the Slide Desk demos (sample songs, playlists, props, Looks, media...).
  * Answers the same requests as ProPresenter's network API. Runs in Node (Start Demo) and in a
  * browser (the online demo). Nothing here talks to a real ProPresenter.
  */

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something in Pro Remote isn't working
+about: Something in Slide Desk isn't working
 labels: bug
 ---
 
@@ -8,12 +8,12 @@ labels: bug
 
 **What were you trying to do?**
 
-**Pro Remote version** (bottom of ⚙︎ Settings):
+**Slide Desk version** (bottom of ⚙︎ Settings):
 **ProPresenter version:**
 **Computer running the remote** (Mac / Windows):
 **Browser used to open it:**
 
-**Terminal lines** (copy the lines from the Start Remote window around when it happened):
+**Terminal lines** (copy the lines from the Slide Desk window around when it happened):
 ```
 ```
 

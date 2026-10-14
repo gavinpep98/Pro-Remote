@@ -1,4 +1,4 @@
-Pro Remote — a browser remote for ProPresenter
+Slide Desk — a browser remote for ProPresenter
 Copyright (C) 2026 Gavin Peppers
 Contributors: Crossroads Community Church, Athens, GA
 
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program (LICENSE.txt).  If not, see <https://www.gnu.org/licenses/>.
 
-Pro Remote is an independent project. It is not made, supported or endorsed by
+Slide Desk is an independent project. It is not made, supported or endorsed by
 Renewed Vision, and is not affiliated with them. ProPresenter is a trademark of
 Renewed Vision.
 

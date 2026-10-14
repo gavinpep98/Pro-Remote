@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Pro Remote · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
+// Slide Desk · Copyright (C) 2026 Gavin Peppers · Contributors: Crossroads Community Church, Athens, GA
 // SPDX-License-Identifier: GPL-3.0-or-later  (see LICENSE.txt and COPYRIGHT.txt)
 /*
- * Pro Remote DEMO: runs a pretend ProPresenter (sample songs, playlists, props, Looks, media)
+ * Slide Desk DEMO: runs a pretend ProPresenter (sample songs, playlists, props, Looks, media)
  * and the real remote pointed at it. Nothing real is controlled. Uses its own settings file.
  * Run:  node demo/start-demo.js   (or double-click "Start Demo")
  */
@@ -54,12 +54,12 @@ fake.on('error', e => {
 
 fake.listen(FAKE_PORT, '127.0.0.1', () => {
   Object.assign(process.env, {
-    PRO_REMOTE_DEMO: '1',
+    SLIDE_DESK_DEMO: '1',
     PRO_HOST: '127.0.0.1',
     PRO_PORT: String(FAKE_PORT),
     REMOTE_PORT: String(REMOTE_PORT),
     REMOTE_PIN: '',
-    PRO_REMOTE_CONFIG: path.join(__dirname, 'demo-config.json'),
+    SLIDE_DESK_CONFIG: path.join(__dirname, 'demo-config.json'),
     OPEN_BROWSER: '1'
   });
   require('../server.js');
